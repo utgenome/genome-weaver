@@ -103,7 +103,7 @@ object GlensBuild extends Build {
   lazy val glens = Project(
     id = "glens",
     base = file("."),
-    settings = buildSettings
+    settings = buildSettings ++ Seq(libraryDependencies ++= testLib :+ apacheCommons)
   ) aggregate(xerialCore, xerialLens) dependsOn(xerialCore % dependentScope, xerialLens)
 
   //lazy val xerial = RootProject(file("xerial"))
