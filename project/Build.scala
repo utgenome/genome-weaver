@@ -16,11 +16,8 @@
 
 package utgenome.glens
 
-import java.io.File
 import sbt._
 import Keys._
-import sbt.classpath.ClasspathUtilities
-import sbtrelease.ReleasePlugin._
 import com.jsuereth.pgp.sbtplugin.PgpPlugin._
 
 object GlensBuild extends Build {
@@ -28,30 +25,26 @@ object GlensBuild extends Build {
   val SCALA_VERSION = "2.9.2"
 
   def releaseResolver(v:String) : Resolver = {
-    val profile = System.getProperty("xerial.profile", "default")
+    val profile = System.getProperty("profile", "default")
     profile match {
-      case "default" =>  {
-        val repoPath = "/home/web/maven.xerial.org/repository/" + (if (v.trim.endsWith("SNAPSHOT")) "snapshot" else "artifact")
-        Resolver.ssh("Xerial Repo", "www.xerial.org", repoPath) as(System.getProperty("user.name"), new File(Path.userHome.absolutePath, ".ssh/id_rsa")) withPermissions("0664")
-      }
-      case "sonatype" => {
+      case "default" => {
         val nexus = "https://oss.sonatype.org/"
-	if(v.trim.endsWith("SNAPSHOT"))
-	  "snapshots" at nexus + "content/repositories/snapshots"
-	else
-	  "releases" at nexus + "service/local/staging/deploy/maven2"
+        if(v.trim.endsWith("SNAPSHOT"))
+          "snapshots" at nexus + "content/repositories/snapshots"
+        else
+          "releases" at nexus + "service/local/staging/deploy/maven2"
       }
       case p => {
-        sys.error("unknown xerial.profile:%s".format(p))
+        sys.error("unknown profile:%s".format(p))
       }
     }
   }
 
   lazy val buildSettings = Defaults.defaultSettings ++ Seq[Setting[_]](
     organization := "org.utgenome",
-    organizationName := "University of Tokyo Genome",
+    organizationName := "University of Tokyo",
     organizationHomepage := Some(new URL("http://utgenome.org/")),
-    description := "Scala library for reading genomic data formats",
+    description := "Scala library for reading and writing genomic data",
     scalaVersion := SCALA_VERSION,
     //resolvers <++= version { (v) => Seq(releaseResolver(v))},
     publishMavenStyle := true,
@@ -106,10 +99,11 @@ object GlensBuild extends Build {
 
   private val dependentScope = "test->test;compile->compile"
 
-  lazy val root = Project(
+
+  lazy val glens = Project(
     id = "glens",
     base = file("."),
-    settings = buildSettings ++ Seq(libraryDependencies ++= testLib :+ apacheCommons)
+    settings = buildSettings
   ) aggregate(xerialCore, xerialLens) dependsOn(xerialCore % dependentScope, xerialLens)
 
   //lazy val xerial = RootProject(file("xerial"))
