@@ -16,14 +16,14 @@ Glens is a Scala library for reading and writing genomic data files.
 
 ## ToDo
 
-* Add supported formats
+* Add format support
   * GFF
   * SAM/BAM (using picard)
   * AXT
   * bigWig/bigBED
+  * Silk
 * Data storage
-  * compression
+  * compressed storage
   * split for parallel read/write
-
-
+* Synchronization
 
