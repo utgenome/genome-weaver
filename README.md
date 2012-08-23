@@ -1,18 +1,29 @@
-Glens: A Collection of Genomic Data Reader
+Glens
+=== 
+Glens is a Scala library for reading and writing genomic data files.
 
-Glens is a Scala library for reading genomic data files.
+## Feature
 
-== Supported Formats
+* Object definitions for biological data formats
+* Mapping data files into objects
+
+## Supported Formats
 
 * FASTA
 * FASTQ
 * BED
 * WIG
 
-== ToDo
+## ToDo
 
-* GFF
-* SAM/BAM
-* AXT
+* Add supported formats
+  * GFF
+  * SAM/BAM (using picard)
+  * AXT
+  * bigWig/bigBED
+* Data storage
+  * compression
+  * split for parallel read/write
+
 
 
