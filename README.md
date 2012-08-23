@@ -2,17 +2,20 @@ Glens: A Collection of Genomic Data Reader
 
 Glens is a Scala library for reading genomic data files.
 
-== Supported Formats
+## Supported Formats
 
 * FASTA
 * FASTQ
 * BED
 * WIG
 
-== ToDo
+## ToDo
 
 * GFF
-* SAM/BAM
+* SAM/BAM (using picard)
 * AXT
+* bigWig/bigBED
+
+
 
 
