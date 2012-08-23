@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package utgenome.weaver.lens
+package utgenome.glens
 
 import xerial.silk.util.SilkSpec
 import xerial.silk.io.SilkTextWriter

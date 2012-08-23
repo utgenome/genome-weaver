@@ -5,7 +5,7 @@
 //
 //--------------------------------------
 
-package utgenome.weaver.lens
+package utgenome.glens
 
 /**
  * Indexes of FASTA data

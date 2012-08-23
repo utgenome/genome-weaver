@@ -5,7 +5,7 @@
 //
 //--------------------------------------
 
-package utgenome.weaver.lens
+package utgenome.glens
 
 import java.io._
 import scala.Some
@@ -34,7 +34,7 @@ import xerial.core.io.text.LineReader
  * </code>
  * </pre>
  *
- * If you need to retrieve the entire sequence as a single String, use [[utgenome.weaver.lens.FASTAEntryReader#sequence]].
+ * If you need to retrieve the entire sequence as a single String, use [[utgenome.glens.FASTAEntryReader#sequence]].
  *
  * @author leo
  */
@@ -292,7 +292,7 @@ object FASTA extends Logging {
 
 
 /**
- * Reader of each FASTA entry. Note that [[utgenome.weaver.lens.FASTAEntryReader#lines]] is evaluated lazily.
+ * Reader of each FASTA entry. Note that [[utgenome.glens.FASTAEntryReader#lines]] is evaluated lazily.
  * @param description
  * @param ss
  */
@@ -312,7 +312,7 @@ class FASTAEntryReader(val description: String, private val ss: FASTA.SequenceSt
   val lines: Stream[String] = ss.toStream
 
   /**
-   * Extract the entire sequence. This result can be large. If you want to process genome sequences line by line, use [[utgenome.weaver.lens.FASTAEntryReader#lines]] method.
+   * Extract the entire sequence. This result can be large. If you want to process genome sequences line by line, use [[utgenome.glens.FASTAEntryReader#lines]] method.
    */
   lazy val sequence: String = {
     if (!ss.isValidStream)

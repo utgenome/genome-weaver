@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package utgenome.weaver.lens
+package utgenome.glens
 
 import collection.mutable.{Stack, ArrayBuilder}
 import collection.generic.Growable

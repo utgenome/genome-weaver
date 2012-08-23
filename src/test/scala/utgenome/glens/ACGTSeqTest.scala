@@ -1,11 +1,11 @@
 //--------------------------------------
 //
-// ACGTNSeqTest.scala
-// Since: 2012/06/21 4:58 PM
+// ACGTSequenceTest.scala
+// Since: 2012/06/03 10:50 AM
 //
 //--------------------------------------
 
-package utgenome.weaver.lens
+package utgenome.glens
 
 import xerial.silk.util.SilkSpec
 import util.Random
@@ -13,9 +13,9 @@ import util.Random
 /**
  * @author leo
  */
-class ACGTNSeqTest extends SilkSpec {
+class ACGTSeqTest extends SilkSpec {
 
-  def compare(orig: String, seq: ACGTNSeq) {
+  def compare(orig: String, seq: ACGTSeq) {
     orig.length should be(seq.length)
     seq.toACGTString should be(orig)
   }
@@ -24,27 +24,27 @@ class ACGTNSeqTest extends SilkSpec {
     val r = new Random(len)
     val b = new StringBuilder
     for (i <- 0 until len)
-      b += "ACGTN".charAt(r.nextInt(5))
+      b += "ACGT".charAt(r.nextInt(4))
     b.result
   }
 
-  "ACGTNSeq (3-bit encoding)" should {
+  "ACGTSeq (2-bit)" should {
 
     "construct instances from String" in {
       val seq = "AAACCGGTT"
-      val s = ACGTNSeq(seq)
+      val s = ACGTSeq(seq)
       compare(seq, s)
     }
 
     "construct instances more than 32bp" in {
       val seq = randomSeq(1243)
-      val w = ACGTNSeq(seq)
+      val w = ACGTSeq(seq)
       compare(seq, w)
     }
 
     "compute the reverse" in {
       val s = randomSeq(452)
-      val c = ACGTNSeq(s)
+      val c = ACGTSeq(s)
       c.numBases should be(s.length)
       val r = c.reverse
 
@@ -62,7 +62,7 @@ class ACGTNSeqTest extends SilkSpec {
           sb.result
         }
 
-        val c = ACGTNSeq(s)
+        val c = ACGTSeq(s)
         val rc = c.reverseComplement
         compare(s_rc, rc)
       }
@@ -74,7 +74,7 @@ class ACGTNSeqTest extends SilkSpec {
     "slice sub strings" in {
       def test(len: Int) {
         val s = randomSeq(len)
-        val w = ACGTNSeq(s)
+        val w = ACGTSeq(s)
         for (x <- 0 until s.length; y <- x until s.length) {
           w.slice(x, y).toACGTString should be(s.substring(x, y))
         }
@@ -88,7 +88,7 @@ class ACGTNSeqTest extends SilkSpec {
 
       def check(len: Int) {
         val s = randomSeq(len)
-        val w = ACGTNSeq(s)
+        val w = ACGTSeq(s)
         for (base <- DNA.exceptN) {
           for (x <- 0 until s.length; y <- x until s.length) {
             //debug("code:%s [%d, %d)", base, x, y)
@@ -105,7 +105,7 @@ class ACGTNSeqTest extends SilkSpec {
 
       def check(len: Int) {
         val s = randomSeq(len)
-        val w = ACGTNSeq(s)
+        val w = ACGTSeq(s)
         for (x <- 0 until s.length; y <- x until s.length) {
           //debug("code:%s [%d, %d)", base, x, y)
           val count = w.count(x, y)
@@ -120,16 +120,15 @@ class ACGTNSeqTest extends SilkSpec {
 
   }
 
-  "ACGTNSeqBuilder (3-bit)" should {
+  "ACGTSeqBuilder (2-bit)" should {
     "be capable to generate long DNA sequences" in {
       val seq = randomSeq(1000000)
-      val b = ACGTNSeq.newBuilder
+      val b = ACGTSeq.newBuilder
       for (slice <- seq.sliding(100, 100)) {
         b += slice
       }
       val s = b.result
-      val cmp = seq == s.toACGTString
-      cmp should be (true)
+      compare(seq, s)
     }
   }
 

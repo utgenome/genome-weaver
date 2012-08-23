@@ -5,7 +5,7 @@
 //
 //--------------------------------------
 
-package utgenome.weaver.lens
+package utgenome.glens
 
 import collection.{mutable, SortedSet}
 import annotation.tailrec

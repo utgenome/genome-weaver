@@ -1,4 +1,4 @@
-package utgenome.weaver.lens
+package utgenome.glens
 
 import util.parsing.combinator.RegexParsers
 import java.io.{FileReader, BufferedReader}

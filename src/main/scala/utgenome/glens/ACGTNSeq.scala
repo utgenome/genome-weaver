@@ -5,7 +5,7 @@
 //
 //--------------------------------------
 
-package utgenome.weaver.lens
+package utgenome.glens
 
 import java.util
 import util.Arrays

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package utgenome.weaver.lens
+package utgenome.glens
 
 import java.io.{BufferedReader, Reader}
 import xerial.core.io.text.parser.{ParseError, SyntaxError}
