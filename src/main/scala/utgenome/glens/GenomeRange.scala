@@ -17,6 +17,7 @@
 package utgenome.glens
 
 import xerial.core.lens.Eq
+import xerial.core.collection.{IntervalTypeBase, IntervalType, IntInterval}
 
 
 //--------------------------------------
@@ -242,6 +243,18 @@ trait GenomicInterval[Repr <: GenomicInterval[_]]
   def newRange(newStart: Int, newEnd: Int): Repr
 
 }
+object GInterval {
+
+  implicit object GIntervalType extends IntervalTypeBase[GInterval, GLocus] {
+
+    def start(a: GInterval) = GLocus(a.chr, a.start, a.strand)
+    def end(a: GInterval) = GLocus(a.chr, a.end, a.strand)
+
+    def yUpperBound(a: GInterval, b: GInterval) = new GInterval(a.chr, a.start, math.max(a.end, b.end), a.strand)
+  }
+
+}
+
 
 /**
  * Locus in genome
@@ -250,11 +263,20 @@ trait GenomicInterval[Repr <: GenomicInterval[_]]
  * @param strand
  */
 case class GLocus(val chr: String, val start: Int, val strand: Strand)
-  extends GenomicLocus[GLocus, GInterval] {
+  extends GenomicLocus[GLocus, GInterval] with Ordered[GLocus] {
   override def toString = "%s:%d:%s".format(chr, start, strand)
   def move(newStart: Int) = new GLocus(chr, newStart, strand)
   def newRange(newStart: Int, newEnd: Int) = new GInterval(chr, newStart, newEnd, strand)
   def toRange = new GInterval(chr, start, start, strand)
+
+  def compare(other: GLocus) = {
+    // compare chr and start (no comparison for strand values)
+    var diff = chr.compareTo(other.chr)
+    if(diff == 0)
+      diff = start - other.start
+    diff
+  }
+
 }
 
 /**
@@ -265,7 +287,7 @@ case class GInterval(val chr: String, val start: Int, val end: Int, val strand: 
   extends GenomicInterval[GInterval] {
   override def toString = "%s:[%d, %d):%s".format(chr, start, end, strand)
   def newRange(newStart: Int, newEnd: Int) = new GInterval(chr, newStart, newEnd, strand)
-}
 
+}
 
 

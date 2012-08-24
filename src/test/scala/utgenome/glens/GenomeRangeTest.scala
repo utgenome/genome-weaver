@@ -18,6 +18,7 @@ package utgenome.glens
 
 import util.Random
 import xerial.core.XerialSpec
+import xerial.core.collection.{GenPrioritySearchTree, PrioritySearchTree}
 
 //--------------------------------------
 //
@@ -71,6 +72,8 @@ class GenomeRangeTest extends XerialSpec {
       g3 must not be (g1)
       g3.hashCode must not be (g1.hashCode)
     }
+
+
   }
 
   "GLocus" should {
