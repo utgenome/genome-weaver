@@ -46,16 +46,13 @@ object GlensBuild extends Build {
     organizationHomepage := Some(new URL("http://utgenome.org/")),
     description := "Scala library for reading and writing genomic data",
     scalaVersion := SCALA_VERSION,
-    //resolvers <++= version { (v) => Seq(releaseResolver(v))},
     publishMavenStyle := true,
     publishArtifact in Test := false,
     publishTo <<= version { (v) => Some(releaseResolver(v)) },
-    publishLocalConfiguration <<= (packagedArtifacts, deliverLocal, checksums, ivyLoggingLevel) map {
-      (arts, _, cs, level) => new PublishConfiguration(None, "localM2", arts, cs, level)
-    },
-    pomIncludeRepository := {
-      _ => false
-    },
+//    publishLocalConfiguration <<= (packagedArtifacts, deliverLocal, checksums, ivyLoggingLevel) map {
+//      (arts, _, cs, level) => new PublishConfiguration(None, "localM2", arts, cs, level)
+//    },
+    pomIncludeRepository := { _ => false },
     parallelExecution := true,
     crossPaths := false,
     scalacOptions ++= Seq("-encoding", "UTF-8", "-deprecation", "-unchecked"),

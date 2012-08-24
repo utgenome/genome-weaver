@@ -23,18 +23,20 @@ package utgenome.glens
 //
 //--------------------------------------
 
-trait GenomeLetter
+trait GenomeLetter {
+  val letter = this.getClass.getSimpleName.replaceAll("""\$""", "")
+}
 
 /**
- * DNA (A, C, G, T, N) letters
+ * DNA (A, C, G, T, N) letters represented in 2-bit code
  */
 object DNA {
   
-  object A extends DNA("A", 0x00, 1)
-  object C extends DNA("C", 0x01, 1<<1)
-  object G extends DNA("G", 0x02, 1<<2)
-  object T extends DNA("T", 0x03, 1<<3)
-  object N extends DNA("N", 0x04, 0x0F)
+  object A extends DNA(0x00, 1)
+  object C extends DNA(0x01, 1<<1)
+  object G extends DNA(0x02, 1<<2)
+  object T extends DNA(0x03, 1<<3)
+  object N extends DNA(0x04, 0x0F)
 
   private[glens] val charToACGTCodeTable : Array[Byte] = Array[Byte](4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
@@ -65,7 +67,7 @@ object DNA {
  * A DNA letter
  * @author leo
  */
-sealed abstract class DNA(val letter:String, val code:Int, val bitFlag:Int) extends GenomeLetter {
+sealed abstract class DNA(val code:Int, val bitFlag:Int) extends GenomeLetter {
   assert(code >= 0 && code <= 4)
 
   override def toString = letter

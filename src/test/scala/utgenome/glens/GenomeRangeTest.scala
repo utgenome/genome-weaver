@@ -16,9 +16,8 @@
 
 package utgenome.glens
 
-import xerial.silk.util.SilkSpec
-import xerial.silk.util.TimeMeasure._
 import util.Random
+import xerial.core.XerialSpec
 
 //--------------------------------------
 //
@@ -30,7 +29,9 @@ import util.Random
 /**
  * @author leo
  */
-class GenomeRangeTest extends SilkSpec {
+class GenomeRangeTest extends XerialSpec {
+
+  import xerial.core.util.StopWatch._
 
   "interval" should {
     "have equality for the same range" in {

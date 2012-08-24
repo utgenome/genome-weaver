@@ -16,14 +16,13 @@
 
 package utgenome.glens
 
-import xerial.silk.util.SilkSpec
-import xerial.silk.io.SilkTextWriter
-import xerial.silk.lens.ObjectSchema
+import xerial.core.XerialSpec
+import xerial.core.lens.ObjectSchema
 
 /**
  * @author leo
  */
-class BEDGeneTest extends SilkSpec {
+class BEDGeneTest extends XerialSpec {
 
     "BEDGene" should {
         "be desribed as as silk" in {
@@ -31,9 +30,7 @@ class BEDGeneTest extends SilkSpec {
           debug("schema:" + schema)
           debug("parameters:" + schema.parameters.mkString(","))
           val g = new BEDGene("chr1", 10000, 20000, Forward, "mygene", 100, 11000, 19000, "0", 0, Array.empty, Array.empty)
-          debug(SilkTextWriter.toSilk("bed", g))
-
-
+          debug(g.toBEDLine)
         }
     }
 

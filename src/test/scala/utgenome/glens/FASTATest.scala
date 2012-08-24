@@ -7,21 +7,22 @@
 
 package utgenome.glens
 
-import xerial.silk.util.SilkSpec
-import xerial.silk.util.io.TextDataProducer
-import java.io.{StringReader, PrintWriter}
+
+import java.io.{BufferedInputStream, StringReader, PrintWriter}
 import util.Random
-import org.xerial.util.FileResource
 import org.scalatest.Tag
+import xerial.core.XerialSpec
+import xerial.core.io.{TextDataProducer, Resource}
 
 
 object ParserTest extends Tag("parser")
+
 object ParserTest2 extends Tag("parser2")
 
 /**
  * @author leo
  */
-class FASTATest extends SilkSpec {
+class FASTATest extends XerialSpec {
 
   "FASTA" should {
     "extract sequence name" in {
@@ -38,48 +39,54 @@ class FASTATest extends SilkSpec {
 
     def randomFASTAReader = new StringReader(randomFASTA.readAsString)
 
-    "parse fasta files" taggedAs(ParserTest) in {
+    "parse fasta files" taggedAs (ParserTest) in {
       FASTA.read(randomFASTAReader) {
         stream =>
-          for(r : FASTAEntryReader <- stream) {
+          for (r: FASTAEntryReader <- stream) {
             debug(r.name)
-            for(line <- r.lines) {
+            for (line <- r.lines) {
               debug(line)
             }
           }
       }
     }
 
-    def tgzFasta = FileResource.openByteStream(this.getClass, "sample-archive.fa.tar.gz")
+    def tgzFasta[U](f: BufferedInputStream => U): U = Resource.open(this.getClass, "sample-archive.fa.tar.gz")(f)
 
 
-    "parse tar.gz files"  taggedAs(ParserTest) in {
-      tgzFasta should not be (null)
-      FASTA.readTarGZ(tgzFasta) { stream =>
-        for(r : FASTAEntryReader <- stream) {
-          debug(r.name)
-          for(line <- r.lines)
-            debug(line)
-        }
+    "parse tar.gz files" taggedAs (ParserTest) in {
+
+      tgzFasta {
+        in =>
+          FASTA.readTarGZ(in) {
+            stream =>
+              for (r: FASTAEntryReader <- stream) {
+                debug(r.name)
+                for (line <- r.lines)
+                  debug(line)
+              }
+          }
+      }
+    }
+
+    "parse only the last chr" taggedAs (ParserTest) in {
+      tgzFasta { in =>
+          FASTA.readTarGZ(in) { stream =>
+            for (r: FASTAEntryReader <- stream; if r.name == "chr3") {
+              debug(r.name)
+              debug(r.sequence)
+            }
+          }
       }
     }
 
 
-    "parse only the last chr"  taggedAs(ParserTest) in {
-      FASTA.readTarGZ(tgzFasta) { stream =>
-        for(r : FASTAEntryReader <- stream; if r.name == "chr3") {
-          debug(r.name)
-          debug(r.sequence)
-        }
+    "create index" taggedAs (ParserTest2) in {
+      val index = tgzFasta {
+        in => FASTA.create2bitIndexFromTarGZ(in)
       }
-    }
-
-
-    "create index" taggedAs(ParserTest2) in {
-      val index =  FASTA.create2bitIndexFromTarGZ(tgzFasta)
       val chrSet = index.sequenceNames.toSet
-      List("chr1", "chr2", "chr3").forall(chrSet.contains(_)) should be (true)
-
+      List("chr1", "chr2", "chr3").forall(chrSet.contains(_)) should be(true)
       index("chr1")
     }
 

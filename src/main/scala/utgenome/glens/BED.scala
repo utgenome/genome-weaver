@@ -71,6 +71,10 @@ class BEDGene
     b.toString
   }
 
+  /**
+   * Output this data as a 0-origin BED data line
+   * @return
+   */
   def toBEDLine: String = (chr, start - 1, end - 1, name, score, strand, thickStart - 1, thickEnd - 1, if (itemRgb != null) itemRgb else "0", blockCount, concatenate(blockSizes), concatenate(blockStarts)).productIterator.mkString("\t")
 
   def isForward = strand.isForward
@@ -148,8 +152,8 @@ object BEDGene extends Logging {
     }
     // (chr, start-1, end-1, name, score, strand, thickStart-1, thickEnd-1, if(itemRgb != null) itemRgb else "0", blockCount, concatenate(blockSizes), concatenate(blockStarts))
     val chr = c(0).getOrElse("")
-    val start = c(1).getOrElse("0").toInt + 1
-    val end = c(2).getOrElse("0").toInt + 1
+    val start = c(1).getOrElse("0").toInt + 1 // convert to 1-origin
+    val end = c(2).getOrElse("0").toInt + 1  // convert to 1-origin
     val name = c(3).getOrElse("")
     val score = c(4).getOrElse("0").toInt
     val strand = Strand(c(5).getOrElse("+"))

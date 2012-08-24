@@ -12,24 +12,24 @@ package utgenome.glens
  * @author leo
  */
 object IUPAC {
-  object Empty extends IUPAC("*", "*", 0x00)
-  object A extends IUPAC("A", "A", 0x01)
-  object C extends IUPAC("C", "C", 0x02)
-  object G extends IUPAC("G", "G", 0x04)
-  object T extends IUPAC("T", "T", 0x08)
-  object M extends IUPAC("M", "A/C", 0x03)
-  object R extends IUPAC("R", "A/G", 0x05)
-  object W extends IUPAC("W", "A/T", 0x09)
-  object S extends IUPAC("S", "C/G", 0x06)
-  object Y extends IUPAC("Y", "C/T", 0x0A)
-  object K extends IUPAC("K", "G/T", 0x0C)
-  object V extends IUPAC("V", "A/C/G", 0x07)
-  object H extends IUPAC("H", "A/C/T", 0x0B)
-  object D extends IUPAC("D", "A/G/T", 0x0D)
-  object B extends IUPAC("B", "C/G/T", 0x0E)
-  object N extends IUPAC("N", "A/C/G/T", 0x0F)
+  object * extends IUPAC("*", 0x00)
+  object A extends IUPAC("A", 0x01)
+  object C extends IUPAC("C", 0x02)
+  object G extends IUPAC("G", 0x04)
+  object T extends IUPAC("T", 0x08)
+  object M extends IUPAC("A/C", 0x03)
+  object R extends IUPAC("A/G", 0x05)
+  object W extends IUPAC("A/T", 0x09)
+  object S extends IUPAC("C/G", 0x06)
+  object Y extends IUPAC("C/T", 0x0A)
+  object K extends IUPAC("G/T", 0x0C)
+  object V extends IUPAC("A/C/G", 0x07)
+  object H extends IUPAC("A/C/T", 0x0B)
+  object D extends IUPAC("A/G/T", 0x0D)
+  object B extends IUPAC("C/G/T", 0x0E)
+  object N extends IUPAC("A/C/G/T", 0x0F)
 
-  val values = Array(Empty, A, C, G, T, M, R, W, S, Y, K, V, H, D, B, N)
+  val values = Array(*, A, C, G, T, M, R, W, S, Y, K, V, H, D, B, N)
 
   private[glens] val bitFlagToIUPACTable = {
     val table = new Array[IUPAC](values.length)
@@ -40,10 +40,10 @@ object IUPAC {
   }
 
   private[glens] lazy val symbolTable = {
-    values.map(each => each.symbol -> each).toMap
+    values.map(each => each.letter -> each).toMap
   }
 
-  private[glens] val complementTable = Array[IUPAC](Empty, T, G, K, C, Y, S, B, A, W,
+  private[glens] val complementTable = Array[IUPAC](*, T, G, K, C, Y, S, B, A, W,
     R, D, M, H, V, N)
 
 
@@ -59,7 +59,7 @@ object IUPAC {
 
 }
 
-sealed abstract class IUPAC(val symbol:String, val variation:String, val bitFlag:Int) extends GenomeLetter {
+sealed abstract class IUPAC(val variation:String, val bitFlag:Int) extends GenomeLetter {
 
   def complement : IUPAC = IUPAC.complementTable(bitFlag)
 

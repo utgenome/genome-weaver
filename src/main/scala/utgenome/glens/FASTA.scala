@@ -61,7 +61,7 @@ object FASTA extends Logging {
 
   def create2bitIndexFrom(fastaFile:String) : FASTAIndex2bit = read(fastaFile)(create2bitIndexFrom)
   def create2bitIndexFromTarGZ(in:InputStream) = readTarGZ(in)(create2bitIndexFrom)
-  def create2bitIndexFromTarGZ(in:Reader) = read(in)(create2bitIndexFrom)
+  def create2bitIndexFromTarGZ(in:Reader) : FASTAIndex = read(in)(create2bitIndexFrom)
 
 
   def extractSequenceNameFrom(descriptionLine: String) = {

@@ -7,12 +7,12 @@
 
 package utgenome.glens
 
-import xerial.silk.util.SilkSpec
+import xerial.core.XerialSpec
 
 /**
  * @author leo
  */
-class OverlapSweeperTest extends SilkSpec {
+class OverlapSweeperTest extends XerialSpec {
 
   "OverlapSweeper" should {
     "report all overlapped intervals" in {

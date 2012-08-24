@@ -1,6 +1,6 @@
 package utgenome.glens
 
-import xerial.silk.util.SilkSpec
+import xerial.core.XerialSpec
 
 //--------------------------------------
 //
@@ -12,7 +12,7 @@ import xerial.silk.util.SilkSpec
 /**
  * @author leo
  */
-class WIGTest extends SilkSpec {
+class WIGTest extends XerialSpec {
 
   import WIGParser._
 
@@ -72,7 +72,7 @@ class WIGTest extends SilkSpec {
 
     "parse entire file" in {
       debug("read sample.wig")
-      withResource("sample.wig") { b =>
+      openText("sample.wig") { b =>
         def loop {
           val line = b.readLine()
           if(line != null) {

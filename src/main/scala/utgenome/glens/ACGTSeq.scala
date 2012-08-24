@@ -10,7 +10,7 @@ package utgenome.glens
 import java.util.Arrays
 
 /**
- * Helper methods for managing 2bit encoding of DNA in an array of Long type
+ * Helper methods for managing 2bit encoding of DNA sequences in Array[Long]
  * @author leo
  */
 trait DNA2bit {
@@ -30,9 +30,9 @@ trait DNA2bit {
     arraySize.toInt
   }
 
-  protected def blockIndex(basePos: Long): Int = (basePos >>> 5).toInt
+  @inline protected def blockIndex(basePos: Long): Int = (basePos >>> 5).toInt
 
-  protected def blockOffset(basePos: Long): Int = (basePos & 0x1FL).toInt
+  @inline protected def blockOffset(basePos: Long): Int = (basePos & 0x1FL).toInt
 
 }
 

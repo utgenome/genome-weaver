@@ -7,13 +7,13 @@
 
 package utgenome.glens
 
-import xerial.silk.util.SilkSpec
 import util.Random
+import xerial.core.XerialSpec
 
 /**
  * @author leo
  */
-class ACGTSeqTest extends SilkSpec {
+class ACGTSeqTest extends XerialSpec {
 
   def compare(orig: String, seq: ACGTSeq) {
     orig.length should be(seq.length)

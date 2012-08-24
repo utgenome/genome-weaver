@@ -16,7 +16,8 @@
 
 package utgenome.glens
 
-import xerial.silk.util.SilkSpec
+
+import xerial.core.XerialSpec
 
 //--------------------------------------
 //
@@ -28,7 +29,7 @@ import xerial.silk.util.SilkSpec
 /**
  * @author leo
  */
-class PrioritySearchTreeTest extends SilkSpec {
+class PrioritySearchTreeTest extends XerialSpec {
 
   trait Fixture {
     val p = new PrioritySearchTree[String]()
