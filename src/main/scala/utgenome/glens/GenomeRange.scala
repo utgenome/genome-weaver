@@ -17,7 +17,7 @@
 package utgenome.glens
 
 import xerial.core.lens.Eq
-import xerial.core.collection.{IntervalTypeBase, IntervalType, IntInterval}
+import utgenome.glens.collection.{IntervalTypeBase, IntervalType, IntInterval}
 
 
 //--------------------------------------
@@ -32,23 +32,8 @@ object GenomeRange {
 
 }
 
-sealed trait Origin {
-  def isZeroOrigin: Boolean
-  def isOneOrigin: Boolean
-}
-
 /**
- * A base trait for converting objects to another type
- * @tparam From the type of the original data
- * @tparam Diff the type of the differnce from the original data
- * @tparam To the type of the output to be created
- */
-trait Converter[-From, -Diff, +To] {
-  def apply(from: From, diff: Diff): To
-}
-
-/**
- * A common trait for interval classes having [start, end) parameters
+ * A common trait for interval classes having [start, end] parameters
  */
 trait GenericInterval extends Eq {
   val start: Int
@@ -77,7 +62,7 @@ trait GenericInterval extends Eq {
   }
 
   def contains(pos: Int): Boolean = {
-    start <= pos && pos < end
+    start <= pos && pos <= end
   }
 
 }
@@ -155,8 +140,6 @@ class IntervalWithChr(val chr: String, val start: Int, val end: Int)
   extends IntervalOps[IntervalWithChr] with InChromosome {
   def newRange(newStart: Int, newEnd: Int) = new IntervalWithChr(chr, newStart, newEnd)
 }
-
-
 
 
 
@@ -245,12 +228,12 @@ trait GenomicInterval[Repr <: GenomicInterval[_]]
 }
 object GInterval {
 
-  implicit object GIntervalType extends IntervalTypeBase[GInterval, GLocus] {
+  implicit object GIntervalType extends IntInterval[GInterval] {
 
-    def start(a: GInterval) = GLocus(a.chr, a.start, a.strand)
-    def end(a: GInterval) = GLocus(a.chr, a.end, a.strand)
+    def start(a: GInterval) = a.start
+    def end(a: GInterval) = a.end
 
-    def yUpperBound(a: GInterval, b: GInterval) = new GInterval(a.chr, a.start, math.max(a.end, b.end), a.strand)
+    def newInterval(base:GInterval, newStart:Int, newEnd:Int) = new GInterval(base.chr, newStart, newEnd, base.strand)
   }
 
 }

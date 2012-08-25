@@ -7,7 +7,6 @@
 
 package utgenome.glens
 
-import collection.{mutable, SortedSet}
 import annotation.tailrec
 
 /**
@@ -21,7 +20,7 @@ class OverlapSweeper[A <: Interval](list:TraversableOnce[A]) extends Iterator[Se
   private var nextOverlappedSet : Option[Seq[A]] = None
   private var sweepLine = 0
 
-  private val endValueQueue = new mutable.PriorityQueue[A]()(new Ordering[A] {
+  private val endValueQueue = new scala.collection.mutable.PriorityQueue[A]()(new Ordering[A] {
     def compare(x: A, y: A) = {
       val diff = y.end - x.end // lower end value has high priority
       if(diff == 0)

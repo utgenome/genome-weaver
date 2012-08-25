@@ -16,9 +16,9 @@
 
 package utgenome.glens
 
+import collection.{PrioritySearchTree, GenPrioritySearchTree}
 import util.Random
 import xerial.core.XerialSpec
-import xerial.core.collection.{GenPrioritySearchTree, PrioritySearchTree}
 
 //--------------------------------------
 //
