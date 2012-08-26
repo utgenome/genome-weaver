@@ -18,29 +18,17 @@ object RedBlackTree {
    */
   abstract class Tree[A, B] {
     def isEmpty: Boolean
-
     def isBlack: Boolean
-
     def left: Tree[A, B]
-
     def right: Tree[A, B]
-
     def iterator: Iterator[(A, B)] = Iterator.empty
-
     def key: A
-
     def value: B
-
     def getKey: Option[A] = None
-
     def update(k: A, v: B): Tree[A, B]
-
     def insert(k: A, v: B): Tree[A, B]
-
     def lookup(e: A): Tree[A, B]
-
     def map[C](f: Tree[A, B] => C): C = f(this)
-
     def foreach[C](f: Tree[A, B] => C): Unit
   }
 
@@ -105,39 +93,24 @@ abstract class RedBlackTree[A, B] extends Logging {
 
   object Empty extends Tree[A, B] {
     override def toString = "Empty"
-
     def value = throw new NoSuchElementException("Empty node has no value")
-
     def isEmpty = true
-
     def isBlack = true
-
     def left = Empty
-
     def right = Empty
-
     def key = throw new NoSuchElementException("No key for Empty node")
-
     def update(k: A, v: B) = blacken(insert(k, v))
-
     def insert(k: A, v: B) = RedTree(k, newValue(k, v), Empty, Empty)
-
     def lookup(e: A): Tree[A, B] = this
-
     def foreach[C](f: Tree[A, B] => C): Unit = {}
   }
 
   abstract class NonEmpty extends Tree[A, B] {
     def isEmpty = false
-
     override def iterator: Iterator[(A, B)] = left.iterator ++ Iterator.single((key, value)) ++ right.iterator
-
     override def getKey = Some(key)
-
     def value: B
-
     def update(k: A, v: B): Tree[A, B] = blacken(insert(k, v))
-
     def insert(k: A, v: B): Tree[A, B] = {
       if (isSmaller(k, key))
         balanceLeft(isBlack, key, value, left.insert(k, v), right)
@@ -146,7 +119,6 @@ abstract class RedBlackTree[A, B] extends Logging {
       else
         updateTree(this, k, v) // k.x == this.key.x
     }
-
     private def balanceLeft(isBlack: Boolean, z: A, zv: B, l: Tree[A, B], r: Tree[A, B]): Tree[A, B] = l match {
       case RedTree(y, yv, RedTree(x, xv, a, b), c) =>
         RedTree(newKey(y, Some(x), Some(z)), yv, BlackTree(x, xv, a, b), BlackTree(z, zv, c, r))
@@ -155,7 +127,6 @@ abstract class RedBlackTree[A, B] extends Logging {
       case _ =>
         mkTree(isBlack, newKey(z, l.getKey, r.getKey), zv, l, r)
     }
-
     private def balanceRight(isBlack: Boolean, x: A, xv: B, l: Tree[A, B], r: Tree[A, B]): Tree[A, B] = r match {
       case RedTree(z, zv, RedTree(y, yv, b, c), d) =>
         RedTree(newKey(y, Some(x), Some(z)), yv, BlackTree(x, xv, l, b), BlackTree(z, zv, c, d))
@@ -164,7 +135,6 @@ abstract class RedBlackTree[A, B] extends Logging {
       case _ =>
         mkTree(isBlack, newKey(x, l.getKey, r.getKey), xv, l, r)
     }
-
     def lookup(e: A): Tree[A, B] = {
       if (isSmaller(e, key))
         left.lookup(e)
@@ -173,13 +143,11 @@ abstract class RedBlackTree[A, B] extends Logging {
       else
         this
     }
-
     def foreach[C](f: Tree[A, B] => C): Unit = {
       left.foreach(f)
       f(this)
       right.foreach(f)
     }
-
   }
 
   case class RedTree(override val key: A, value: B, left: Tree[A, B], right: Tree[A, B]) extends NonEmpty {

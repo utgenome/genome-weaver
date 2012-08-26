@@ -105,7 +105,7 @@ import GenPrioritySearchTree._
  */
 class PrioritySearchTree[A](tree: Tree[A, Holder[A]], override val size: Int)
                            (implicit iv: IntervalType[A, Int])
-  extends GenPrioritySearchTree[A, Int](tree, size)(iv) {
+  extends GenPrioritySearchTree[A, Int](tree, size)(iv, Ordering.Int) {
 
   override def +(k: A) = new PrioritySearchTree(root.update(k, null), size + 1)
 }
@@ -119,12 +119,12 @@ class PrioritySearchTree[A](tree: Tree[A, Holder[A]], override val size: Int)
  */
 class LPrioritySearchTree[A](tree: Tree[A, Holder[A]], override val size: Int)
                             (implicit iv: IntervalType[A, Long])
-  extends GenPrioritySearchTree[A, Long](tree, size)(iv) {
+  extends GenPrioritySearchTree[A, Long](tree, size)(iv, Ordering.Long) {
 
   override def +(k: A) = new LPrioritySearchTree(root.update(k, null), size + 1)
 }
 
-
+ 
 /**
  * A base class of the persistent priority search tree.
  *
@@ -133,7 +133,7 @@ class LPrioritySearchTree[A](tree: Tree[A, Holder[A]], override val size: Int)
  * @param iv
  * @tparam A
  */
-class GenPrioritySearchTree[A, B](tree: Tree[A, Holder[A]], override val size: Int)(implicit iv: IntervalType[A, B])
+class GenPrioritySearchTree[A, V](tree: Tree[A, Holder[A]], override val size: Int)(implicit iv: IntervalType[A, V], ord:Ordering[V])
   extends RedBlackTree[A, Holder[A]] with Iterable[A] {
 
   protected def root: Tree[A, Holder[A]] = if (tree == null) Empty else tree
@@ -193,7 +193,7 @@ class GenPrioritySearchTree[A, B](tree: Tree[A, Holder[A]], override val size: I
    * @param range
    * @return
    */
-  def queryIntersectingWith(range: A): Iterator[A] = {
+  def intersectWith(range: A): Iterator[A] = {
     def find(t: Tree[A, Holder[A]]): Iterator[A] = {
       if (t.isEmpty || iv.compareXY(range, t.key) > 0) {
         // This tree contains no answer since yUpperBound (t.key.x) < range.x
@@ -242,7 +242,7 @@ class GenPrioritySearchTree[A, B](tree: Tree[A, Holder[A]], override val size: I
 
   }
 
-  def range(from: Option[A], until: Option[A]): Iterator[A] = {
+  def range(from: Option[V], until: Option[V]): Iterator[A] = {
     def takeValue(t: Tree[A, Holder[A]]): Iterator[A] = {
       if (t.isEmpty)
         Iterator.empty
@@ -256,8 +256,8 @@ class GenPrioritySearchTree[A, B](tree: Tree[A, Holder[A]], override val size: I
       else {
         (from, until) match {
           case (None, None) => t.map(takeValue)
-          case (Some(s), _) if iv.compareX(t.key, s) < 0 => find(t.right)
-          case (_, Some(e)) if iv.compareX(e, t.key) < 0 => find(t.left)
+          case (Some(s), _) if ord.compare(iv.start(t.key), s) < 0 => find(t.right)
+          case (_, Some(e)) if ord.compare(e, iv.start(t.key)) < 0 => find(t.left)
           case _ => {
             find(t.left) ++ t.value.iterator ++ find(t.right)
           }

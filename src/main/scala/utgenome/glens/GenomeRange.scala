@@ -98,13 +98,6 @@ trait IntervalOps[Repr <: IntervalOps[_]] extends GenericInterval {
 
 }
 
-trait InChromosome {
-  val chr: String
-}
-
-trait HasStrand {
-  val strand: Strand
-}
 
 
 object Interval {
@@ -130,24 +123,15 @@ object IntervalOrdering extends Ordering[Interval] {
   }
 }
 
-/**
- * An interval with chromosome name. This type of interval is frequently used in genome sciences
- * @param chr
- * @param start
- * @param end
- */
-class IntervalWithChr(val chr: String, val start: Int, val end: Int)
-  extends IntervalOps[IntervalWithChr] with InChromosome {
-  def newRange(newStart: Int, newEnd: Int) = new IntervalWithChr(chr, newStart, newEnd)
-}
-
-
 
 /**
  * Locus in a genome sequence with chr and strand information
  */
-trait GenomicLocus[Repr, RangeRepr] extends InChromosome with HasStrand with Eq {
+trait GenomicLocus[Repr, RangeRepr] extends Eq {
   val start: Int
+  val chr : String
+  val strand : Strand
+
 
   /**
    *
@@ -190,11 +174,14 @@ trait GenomicLocus[Repr, RangeRepr] extends InChromosome with HasStrand with Eq 
  * Common trait for locus classes in genome sequences with chr and strand information
  */
 trait GenomicInterval[Repr <: GenomicInterval[_]]
-  extends IntervalOps[Repr] with InChromosome with HasStrand {
+  extends IntervalOps[Repr]  {
 
-  def inSameChr[A <: InChromosome](other: A): Boolean = this.chr == other.chr
+  val chr : String
+  val strand : Strand
 
-  def checkChr[A <: InChromosome, B](other: A, success: => B, fail: => B): B = {
+  def inSameChr[A <: Repr](other: A): Boolean = this.chr == other.chr
+
+  def checkChr[A <: Repr, B](other: A, success: => B, fail: => B): B = {
     if (inSameChr(other))
       success
     else
@@ -232,10 +219,10 @@ object GInterval {
 
     def start(a: GInterval) = a.start
     def end(a: GInterval) = a.end
-
+    
     def newInterval(base:GInterval, newStart:Int, newEnd:Int) = new GInterval(base.chr, newStart, newEnd, base.strand)
   }
-
+  
 }
 
 

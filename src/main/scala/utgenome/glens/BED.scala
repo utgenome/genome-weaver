@@ -16,6 +16,7 @@
 
 package utgenome.glens
 
+import collection.{IntInterval, GTable}
 import java.io.File
 import io.Source
 import xerial.core.log.Logging
@@ -127,14 +128,33 @@ class BEDGene
 }
 
 object BED {
+
+  implicit object BEDGeneIntervalType extends IntInterval[BED] {
+    def start(a: BED) = a.start
+    def end(a: BED) = a.end
+    def newInterval(base: BED, newStart: Int, newEnd: Int) = base.newRange(newStart, newEnd)
+  }
+
   def apply(line: String): BED = {
     val c = line.split("\\s+")
     // set to 1-origin
     new BED(c(0), c(1).toInt + 1, c(2).toInt + 1, Strand(c(3)))
   }
+
+  def load(bedFile:String) : GTable[BED] = {
+    val t = new GTable[BED]
+
+
+
+    t
+  }
+
 }
 
 object BEDGene extends Logging {
+
+
+
   def apply(line: String): BEDGene = {
     def parseBlock(blocks: String) = {
       val c = blocks.trim.stripSuffix(",").split(",")

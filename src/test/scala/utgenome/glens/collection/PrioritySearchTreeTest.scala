@@ -28,7 +28,7 @@ class PrioritySearchTreeTest extends XerialSpec {
     debug("overlap query: %s", q)
     time("overlap query", repeat = 3) {
       block("pst query") {
-        overlapped = p.queryIntersectingWith(q).toArray
+        overlapped = p.intersectWith(q).toArray
       }
       block("O(n) search") {
         overlapped_ans = p.filter(_.intersectWith(q)).toArray
@@ -68,7 +68,7 @@ class PrioritySearchTreeTest extends XerialSpec {
       p.get(Interval(4, 20)) should be('defined)
       p.get(Interval(4, 8)) should be('empty)
 
-      val rng = p.range(Some(Interval.point(5)), Some(Interval.point(23)))
+      val rng = p.range(Some(5), Some(23))
       debug("range:%s", rng.mkString(", "))
 
       overlapQuery(p, Interval(6, 10))
