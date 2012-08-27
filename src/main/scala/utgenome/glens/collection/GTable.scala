@@ -1,6 +1,8 @@
 package utgenome.glens.collection
 
 import collection.mutable
+import utgenome.glens.BEDGene
+import java.io.File
 
 //--------------------------------------
 //
@@ -10,10 +12,18 @@ import collection.mutable
 //--------------------------------------
 
 
-
+object GTable {
+  def loadBED(bedFile:String) : GTable[BEDGene] = {
+    val t = new GTable[BEDGene]
+    for(bed <- BEDGene.parse(new File(bedFile))) {
+      t += bed
+    }
+    t
+  }
+}
 
 /**
- * list of GIntervals
+ * A table of GIntervals
  *
  * @author leo
  */
@@ -40,11 +50,5 @@ class GTable[A <: GenomicInterval[A]](implicit iv:IntervalType[A, Int]) {
       p.intersectWith(range).filter { _.strand == range.strand  }
     } getOrElse Iterable.empty[A]
   } 
-
-  def following[B <: GLocus](locus:B) : TraversableOnce[A] = {
-    table.get(locus.chr) map { p =>
-      p.range(Some(locus.start), None)
-    } getOrElse Iterable.empty[A]
-  }
 
 }
