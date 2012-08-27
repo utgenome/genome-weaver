@@ -29,13 +29,13 @@ trait GenomicInterval[Repr <: GenomicInterval[Repr]] extends GenInterval[Repr, I
   }
 
   def fivePrimeEnd: GLocus = strand match {
-    case Forward => new GLocus(chr, start, strand)
-    case Reverse => new GLocus(chr, end, strand)
+    case Forward => new GLocus(chr, intervalType.start(this), strand)
+    case Reverse => new GLocus(chr, intervalType.end(this), strand)
   }
 
   def threePrimeEnd: GLocus = strand match {
-    case Forward => new GLocus(chr, end, strand)
-    case Reverse => new GLocus(chr, start, strand)
+    case Forward => new GLocus(chr, intervalType.end(this), strand)
+    case Reverse => new GLocus(chr, intervalType.start(this), strand)
   }
 
   override def intersectWith[A <: Repr](other: A): Boolean = {

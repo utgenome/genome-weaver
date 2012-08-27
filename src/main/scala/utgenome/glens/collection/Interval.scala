@@ -1,8 +1,7 @@
 package utgenome.glens.collection
 
 import xerial.core.lens.Eq
-import utgenome.glens.collection.LInterval.LongIntervalType
-import utgenome.glens.collection.Interval.IntIntervalType
+
 
 /*
  * Copyright 2012 Taro L. Saito
@@ -132,15 +131,11 @@ abstract class LongIntervalType[A] extends IntervalType[A, Long] {
  * @tparam Repr representation
  * @tparam V value type of the interval coordinates
  */
-trait GenInterval[Repr, V] { this : Repr =>
-  val start: V
-  val end: V
-
-  override def toString = "%d:%d".format(start, end)
-  def size : V = intervalType.ord.diff(end, start)
-  def length : V = size
-
+trait GenInterval[Repr, V] extends Eq { this : Repr =>
   protected def intervalType : IntervalType[Repr, V]
+  override def toString = "%d:%d".format(intervalType.start(this), intervalType.end(this))
+
+  def size : V = intervalType.ord.diff(intervalType.end(this), intervalType.start(this))
 
   /**
    * Detect overlaps with the specified interval, including containment
@@ -157,9 +152,9 @@ trait GenInterval[Repr, V] { this : Repr =>
 /**
  * Closed interval [start, end], where start and end are Int values
  */
-class Interval(val start: Int, val end: Int) extends GenInterval[Interval, Int] {
+class Interval(val start: Int, val end: Int) extends GenInterval[Interval, Int]  {
   require(start <= end, "start must be smaller than or equals to end: [%d, %d]".format(start, end))
-  protected def intervalType = IntIntervalType
+  protected def intervalType = Interval.IntervalType
 
   def toRange: Range = Range(start, end)
 }
@@ -172,12 +167,12 @@ class Interval(val start: Int, val end: Int) extends GenInterval[Interval, Int] 
 class LInterval(val start: Long, val end: Long) extends GenInterval[LInterval, Long] {
   require(start <= end, "start must be smaller than or equals to end: [%d, %d]".format(start, end))
 
-  protected def intervalType = LongIntervalType
+  protected def intervalType = LInterval.IntervalType
 
 }
 
 object Interval {
-  implicit object IntIntervalType extends IntervalType[Interval, Int] {
+  implicit object IntervalType extends IntervalType[Interval, Int] {
     def start(a: Interval) = a.start
     def end(a: Interval) = a.end
 
@@ -206,7 +201,7 @@ object Interval {
 
 object LInterval {
 
-  implicit object LongIntervalType extends IntervalType[LInterval, Long] {
+  implicit object IntervalType extends IntervalType[LInterval, Long] {
     def ord = OrderingOpt.LongOrd
     def start(a: LInterval) = a.start
     def end(a: LInterval) = a.end
