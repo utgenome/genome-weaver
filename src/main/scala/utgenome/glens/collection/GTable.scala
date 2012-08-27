@@ -31,6 +31,13 @@ class GTable[A <: GenomicInterval[A]](implicit iv:IntervalType[A, Int]) extends 
   
   private val table = mutable.Map[String, PrioritySearchTree[A]]()
 
+
+  def chrSet = table.keySet
+
+  def apply(chr:String) = table(chr)
+
+  override def size : Int = table.values map {_.size} sum
+
   def +=(e:A) : this.type = {
     val p = table.getOrElseUpdate(e.chr, PrioritySearchTree.empty[A](iv))
     table.update(e.chr, p + e)
