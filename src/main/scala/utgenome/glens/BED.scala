@@ -63,10 +63,10 @@ class BED(val chr: String, val start: Int, val end: Int, val strand: Strand)
  */
 class BEDGene
   (
-  chr: String,
-  start: Int,
-  end: Int,
-  strand: Strand,
+  val chr: String,
+  val start: Int,
+  val end: Int,
+  val strand: Strand,
   val name: String,
   val score: Int,
   val thickStart: Int,
@@ -76,7 +76,7 @@ class BEDGene
   val blockSizes: Array[Int],
   val blockStarts: Array[Int]
 )
-  extends BED(chr, start, end, strand) {
+  extends GenomicInterval[BEDGene] {
 
   override def toString = "%s %s[%s,%s)".format(name, chr, start, end)
 
@@ -141,6 +141,7 @@ class BEDGene
     }
   }
 
+  protected def intervalType = BEDGene.BEDGeneType
 }
 
 
