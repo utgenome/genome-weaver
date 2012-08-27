@@ -43,21 +43,21 @@ trait Point2D[A, @specialized(Int, Long) V] extends Ordering[A] {
   def ord : OrderingOpt[V]
 
   def compare(a: A, b: A): Int = {
-    val diff = compareX(a, b)
-    if (diff == 0) compareY(a, b) else diff
+    val diff = ord.compare(x(a), x(b))
+    if (diff == 0) ord.compare(y(a), y(b)) else diff
   }
 
-  def ==(a: A, b: A): Boolean = xEquals(a, b) && yEquals(a, b)
+  def ==[B](a: A, b: B)(implicit iv:Point2D[B, V]): Boolean = xEquals(a, b) && yEquals(a, b)
 
-  def compareX(a: A, b: A): Int = ord.compare(x(a), x(b))
-  def compareY(a: A, b: A): Int = ord.compare(y(a), y(b))
-  def compareXY(a: A, b: A): Int = ord.compare(x(a), y(b))
-  def xIsSmaller(a: A, b: A): Boolean = compareX(a, b) < 0
-  def xEquals(a: A, b: A): Boolean = compareX(a, b) == 0
-  def yIsSmaller(a: A, b: A): Boolean = compareY(a, b) < 0
-  def yEquals(a: A, b: A): Boolean = compareY(a, b) == 0
-  def xIsSmallerThanOrEq(a: A, b: A): Boolean = compareX(a, b) <= 0
-  def yIsSmallerThanOrEq(a: A, b: A): Boolean = compareY(a, b) <= 0
+  def compareX[B](a: A, b: B)(implicit iv:Point2D[B, V]): Int = ord.compare(x(a), iv.x(b))
+  def compareY[B](a: A, b: B)(implicit iv:Point2D[B, V]): Int = ord.compare(y(a), iv.y(b))
+  def compareXY[B](a: A, b: B)(implicit iv:Point2D[B, V]): Int = ord.compare(x(a), iv.y(b))
+  def xIsSmaller[B](a: A, b: B)(implicit iv:Point2D[B, V]): Boolean = compareX(a, b) < 0
+  def xEquals[B](a: A, b: B)(implicit iv:Point2D[B, V]): Boolean = compareX(a, b) == 0
+  def yIsSmaller[B](a: A, b: B)(implicit iv:Point2D[B, V]): Boolean = compareY(a, b) < 0
+  def yEquals[B](a: A, b: B)(implicit iv:Point2D[B, V]): Boolean = compareY(a, b) == 0
+  def xIsSmallerThanOrEq[B](a: A, b: B)(implicit iv:Point2D[B, V]): Boolean = compareX(a, b) <= 0
+  def yIsSmallerThanOrEq[B](a: A, b: B)(implicit iv:Point2D[B, V]): Boolean = compareY(a, b) <= 0
 
 }
 
@@ -74,16 +74,16 @@ trait IntervalType[A, @specialized(Int, Long) V] extends Point2D[A, V] {
   def start(a: A): V
   def end(a: A): V
 
-  def precede(a: A, b: A): Boolean = ord.lteq(end(a), start(b))
-  def follow(a: A, b: A): Boolean = ord.lteq(end(b), start(a))
-  def intersect(a: A, b: A): Boolean = ord.lteq(start(a), end(b)) && ord.lteq(start(b), end(a))
+  def precede[B](a: A, b: B)(implicit iv:IntervalType[B, V]): Boolean = ord.lteq(end(a), iv.start(b))
+  def follow[B](a: A, b: B)(implicit iv:IntervalType[B, V]): Boolean = ord.lteq(iv.end(b), start(a))
+  def intersect[B](a: A, b: B)(implicit iv:IntervalType[B, V]): Boolean = ord.lteq(start(a), iv.end(b)) && ord.lteq(iv.start(b), end(a))
 
   /**
    * Take the intersection of two intervals
    */
-  def intersection(a:A, b:A) : Option[A] = {
-    val s = ord.max(start(a), start(b))
-    val e = ord.min(end(a), end(b))
+  def intersection[B](a:A, b:B)(implicit iv:IntervalType[B, V]) : Option[A] = {
+    val s = ord.max(start(a), iv.start(b))
+    val e = ord.min(end(a), iv.end(b))
     if(ord.lteq(s, e))
       Some(newInterval(a, s, e))
     else
@@ -91,11 +91,11 @@ trait IntervalType[A, @specialized(Int, Long) V] extends Point2D[A, V] {
   }
 
 
-  def contain(a: A, b: A): Boolean = ord.lteq(start(a), start(b)) && ord.lteq(end(b), end(a))
+  def contain[B](a: A, b: B)(implicit iv:IntervalType[B, V]): Boolean = ord.lteq(start(a), iv.start(b)) && ord.lteq(iv.end(b), end(a))
   def containPoint(a: A, p: V) : Boolean = ord.lteq(start(a), p) && ord.lteq(p, end(a))
 
-  def startIsSmaller(a: A, b: A): Boolean = ord.lt(start(a), start(b))
-  def endIsSmaller(a: A, b: A): Boolean = ord.lt(end(a), end(b))
+  def startIsSmaller[B](a: A, b: B)(implicit iv:IntervalType[B, V]): Boolean = ord.lt(start(a), iv.start(b))
+  def endIsSmaller[B](a: A, b: B)(implicit iv:IntervalType[B, V]): Boolean = ord.lt(end(a), iv.end(b))
 
   /**
    * Used in PrioritySearchTrees to create parent nodes
@@ -103,8 +103,8 @@ trait IntervalType[A, @specialized(Int, Long) V] extends Point2D[A, V] {
    * @param b
    * @return
    */
-  def yUpperBound(a: A, b: A): A = {
-    newInterval(a, start(a), if(yIsSmaller(a, b)) end(b) else end(a))
+  def yUpperBound[B](a: A, b: B)(implicit iv:IntervalType[B, V]): A = {
+    newInterval(a, start(a), if(yIsSmaller(a, b)) iv.end(b) else end(a))
   }
   def newInterval(base:A, newStart:V, newEnd:V) : A
 }
@@ -142,10 +142,10 @@ trait GenInterval[Repr, V] extends Eq { this : Repr =>
    * @param other
    * @return
    */
-  def intersectWith[A <: Repr](other: A): Boolean = intervalType.intersect(this, other)
-  def contains[A <: Repr](other: A): Boolean = intervalType.contain(this, other)
+  def intersectWith[A](other: A)(implicit iv:IntervalType[A, V]): Boolean = intervalType.intersect(this, other)
+  def contains[A](other: A)(implicit iv:IntervalType[A, V]): Boolean = intervalType.contain(this, other)
   def containsPoint(pos: V): Boolean = intervalType.containPoint(this, pos)
-  def intersection[A <: Repr](other:A): Option[Repr] = intervalType.intersection(this, other)
+  def intersection[A](other:A)(implicit iv:IntervalType[A, V]): Option[Repr] = intervalType.intersection(this, other)
 }
 
 

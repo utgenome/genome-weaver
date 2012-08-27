@@ -45,9 +45,9 @@ class GTable[A <: GenomicInterval[A]](implicit iv:IntervalType[A, Int]) {
    * @param range
    * @return
    */
-  def intersectWith(range:A) : TraversableOnce[A] = {
+  def intersectWith[B <: GenomicInterval[_]](range:B)(implicit iv2:IntervalType[B, Int]) : TraversableOnce[A] = {
     table.get(range.chr) map { p =>
-      p.intersectWith(range).filter { _.strand == range.strand  }
+      p.intersectWith(range)(iv2).filter { _.strand == range.strand  }
     } getOrElse Iterable.empty[A]
   } 
 

@@ -14,14 +14,18 @@ import xerial.core.lens.Eq
 /**
  * Common trait for representing intervals in genome sequences with chr and strand information
  */
-trait GenomicInterval[Repr <: GenomicInterval[Repr]] extends GenInterval[Repr, Int]  { this : Repr =>
+trait GenomicInterval[Repr <: GenomicInterval[Repr]] { this : Repr =>
+  protected def intervalType : IntervalType[Repr, Int]
 
   val chr : String
   val strand : Strand
 
-  def inSameChr[A <: Repr](other: A): Boolean = this.chr == other.chr
+  override def toString = "%d:%d".format(intervalType.start(this), intervalType.end(this))
+  def size : Int = intervalType.ord.diff(intervalType.end(this), intervalType.start(this))
 
-  def checkChr[A <: Repr, B](other: A, success: => B, fail: => B): B = {
+  def inSameChr[A <: GenomicInterval[_]](other: A): Boolean = this.chr == other.chr
+
+  def checkChr[A <: GenomicInterval[_], Ret](other: A, success: => Ret, fail: => Ret): Ret = {
     if (inSameChr(other))
       success
     else
@@ -38,16 +42,16 @@ trait GenomicInterval[Repr <: GenomicInterval[Repr]] extends GenInterval[Repr, I
     case Reverse => new GLocus(chr, intervalType.start(this), strand)
   }
 
-  override def intersectWith[A <: Repr](other: A): Boolean = {
-    checkChr(other, super.intersectWith(other), false)
+  def intersectWith[A <: GenomicInterval[_]](other: A)(implicit iv:IntervalType[A, Int]): Boolean = {
+    checkChr(other, intervalType.intersect(this, other), false)
   }
 
-  override def contains[A <: Repr](other: A): Boolean = {
-    checkChr(other, super.intersectWith(other), false)
+  def contains[A <: GenomicInterval[_]](other: A)(implicit iv:IntervalType[A, Int]): Boolean = {
+    checkChr(other, intervalType.contain(this, other), false)
   }
 
-  override def intersection[A <: Repr](other: A): Option[Repr] = {
-    checkChr(other, super.intersection(other), None)
+  def intersection[A <: GenomicInterval[_]](other: A)(implicit iv:IntervalType[A, Int]): Option[Repr] = {
+    checkChr(other, intervalType.intersection(this, other), None)
   }
 
 }
@@ -68,6 +72,9 @@ object GInterval {
     def ord = OrderingOpt.IntOrd
   }
 
+  def apply(chr: String, start: Int, end: Int, strand: Strand) = new GInterval(chr, start, end, strand)
+  def apply(chr: String, start: Int, end: Int) = new GInterval(chr, start, end, Forward)
+
 }
 
 
@@ -79,7 +86,7 @@ class GInterval(val chr: String, val start: Int, val end: Int, val strand: Stran
   extends GenomicInterval[GInterval] with Eq {
   override def toString = "%s:[%d, %d):%s".format(chr, start, end, strand)
 
-  protected def intervalType = null
+  protected def intervalType = GInterval.GIntervalType
 }
 
 

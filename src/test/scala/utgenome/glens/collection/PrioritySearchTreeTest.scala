@@ -15,9 +15,6 @@ import util.Random
  */
 class PrioritySearchTreeTest extends XerialSpec {
 
-  case class GInterval(chr: String, override val start: Int, override val end: Int) extends Interval(start, end) {
-    override def toString = "%s-%d:%d".format(chr, start, end)
-  }
 
   def overlapQuery(p: PrioritySearchTree[Interval], q: Interval) {
     import xerial.core.util.StopWatch._
@@ -74,13 +71,17 @@ class PrioritySearchTreeTest extends XerialSpec {
       overlapQuery(p, Interval(6, 10))
       overlapQuery(p, Interval(13, 18))
 
+    }
 
-      p.get(GInterval("chr1", 3, 5)) should be('defined)
+    "mix GInterval sub classes" in {
+      var p = PrioritySearchTree.empty[GInterval]
+      p += GInterval("chr1", 20, 40)
+      p += GInterval("chr1", 34, 50)
+      p += GInterval("chr1", 53, 59)
 
-      p += GInterval("chr1", 8, 19)
-      debug(p)
-      debug(p.mkString(", "))
-
+      val r = p.intersectWith(Interval(25, 38))
+      debug(r.mkString(", "))
+      r.toSeq should have size (2)
     }
 
 
@@ -88,7 +89,7 @@ class PrioritySearchTreeTest extends XerialSpec {
     "insert many nodes" in {
       val r = new Random(0)
       val b = PrioritySearchTree.newBuilder[Interval]
-      val n = 100000
+      val n = 10000
       for (i <- 0 until n) {
         val s = r.nextInt(1000000)
         b += Interval(s, s + (100 + r.nextInt(1000)))

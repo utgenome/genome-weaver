@@ -180,7 +180,7 @@ class GenPrioritySearchTree[A, V](tree: Tree[A, Holder[A]], override val size: I
 
   def iterator = root.iterator.flatMap(_._2)
 
-  def get[A1 <: A](k: A1): Option[A] = {
+  def get[A1 <: A](k: A): Option[A] = {
     root.lookup(k) match {
       case Empty => None
       case t => t.value.find(iv.==(_, k))
@@ -193,9 +193,9 @@ class GenPrioritySearchTree[A, V](tree: Tree[A, Holder[A]], override val size: I
    * @param range
    * @return
    */
-  def intersectWith(range: A): Iterator[A] = {
+  def intersectWith[R](range: R)(implicit iv2:IntervalType[R, V]): Iterator[A] = {
     def find(t: Tree[A, Holder[A]]): Iterator[A] = {
-      if (t.isEmpty || iv.compareXY(range, t.key) > 0) {
+      if (t.isEmpty || iv2.compareXY(range, t.key) > 0) {
         // This tree contains no answer since yUpperBound (t.key.x) < range.x
         Iterator.empty
       }
