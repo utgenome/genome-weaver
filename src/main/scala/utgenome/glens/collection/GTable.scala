@@ -27,7 +27,7 @@ object GTable {
  *
  * @author leo
  */
-class GTable[A <: GenomicInterval[A]](implicit iv:IntervalType[A, Int]) {
+class GTable[A <: GenomicInterval[A]](implicit iv:IntervalType[A, Int]) extends Traversable[A] {
   
   private val table = mutable.Map[String, PrioritySearchTree[A]]()
 
@@ -49,6 +49,9 @@ class GTable[A <: GenomicInterval[A]](implicit iv:IntervalType[A, Int]) {
     table.get(range.chr) map { p =>
       p.intersectWith(range)(iv2).filter { _.strand == range.strand  }
     } getOrElse Iterable.empty[A]
-  } 
+  }
 
+  def foreach[U](f: (A) => U) {
+    table.values foreach { p => p.foreach(f(_)) }
+  }
 }
