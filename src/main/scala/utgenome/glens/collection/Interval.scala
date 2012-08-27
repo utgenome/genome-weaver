@@ -1,5 +1,9 @@
 package utgenome.glens.collection
 
+import xerial.core.lens.Eq
+import utgenome.glens.collection.LInterval.LongIntervalType
+import utgenome.glens.collection.Interval.IntIntervalType
+
 /*
  * Copyright 2012 Taro L. Saito
  *
@@ -33,6 +37,12 @@ trait Point2D[A, @specialized(Int, Long) V] extends Ordering[A] {
   def x(a: A): V
   def y(a: A): V
 
+  /**
+   * Ordering function of type V values
+   * @return
+   */
+  def ord : OrderingOpt[V]
+
   def compare(a: A, b: A): Int = {
     val diff = compareX(a, b)
     if (diff == 0) compareY(a, b) else diff
@@ -40,9 +50,9 @@ trait Point2D[A, @specialized(Int, Long) V] extends Ordering[A] {
 
   def ==(a: A, b: A): Boolean = xEquals(a, b) && yEquals(a, b)
 
-  def compareX(a: A, b: A): Int
-  def compareY(a: A, b: A): Int
-  def compareXY(a: A, b: A): Int
+  def compareX(a: A, b: A): Int = ord.compare(x(a), x(b))
+  def compareY(a: A, b: A): Int = ord.compare(y(a), y(b))
+  def compareXY(a: A, b: A): Int = ord.compare(x(a), y(b))
   def xIsSmaller(a: A, b: A): Boolean = compareX(a, b) < 0
   def xEquals(a: A, b: A): Boolean = compareX(a, b) == 0
   def yIsSmaller(a: A, b: A): Boolean = compareY(a, b) < 0
@@ -51,7 +61,6 @@ trait Point2D[A, @specialized(Int, Long) V] extends Ordering[A] {
   def yIsSmallerThanOrEq(a: A, b: A): Boolean = compareY(a, b) <= 0
 
 }
-
 
 /**
  * Type class representing intervals
@@ -65,12 +74,29 @@ trait IntervalType[A, @specialized(Int, Long) V] extends Point2D[A, V] {
   def y(a: A) = end(a)
   def start(a: A): V
   def end(a: A): V
-  def precede(a: A, b: A): Boolean
-  def follow(a: A, b: A): Boolean
-  def intersect(a: A, b: A): Boolean
-  def contain(a: A, b: A): Boolean
-  def startIsSmaller(a: A, b: A): Boolean
-  def endIsSmaller(a: A, b: A): Boolean
+
+  def precede(a: A, b: A): Boolean = ord.lteq(end(a), start(b))
+  def follow(a: A, b: A): Boolean = ord.lteq(end(b), start(a))
+  def intersect(a: A, b: A): Boolean = ord.lteq(start(a), end(b)) && ord.lteq(start(b), end(a))
+
+  /**
+   * Take the intersection of two intervals
+   */
+  def intersection(a:A, b:A) : Option[A] = {
+    val s = ord.max(start(a), start(b))
+    val e = ord.min(end(a), end(b))
+    if(ord.lteq(s, e))
+      Some(newInterval(a, s, e))
+    else
+      None
+  }
+
+
+  def contain(a: A, b: A): Boolean = ord.lteq(start(a), start(b)) && ord.lteq(end(b), end(a))
+  def containPoint(a: A, p: V) : Boolean = ord.lteq(start(a), p) && ord.lteq(p, end(a))
+
+  def startIsSmaller(a: A, b: A): Boolean = ord.lt(start(a), start(b))
+  def endIsSmaller(a: A, b: A): Boolean = ord.lt(end(a), end(b))
 
   /**
    * Used in PrioritySearchTrees to create parent nodes
@@ -84,71 +110,58 @@ trait IntervalType[A, @specialized(Int, Long) V] extends Point2D[A, V] {
   def newInterval(base:A, newStart:V, newEnd:V) : A
 }
 
-/**
- * Base implementation of [[utgenome.glens.collection.IntervalType]]
- * @tparam A  actual class
- * @tparam V  interval value type
- * @author leo
- */
-trait IntervalTypeBase[A, V <: Ordered[V]] extends IntervalType[A, V] {
-  def precede(a: A, b: A): Boolean = end(a) <= start(b)
-  def follow(a: A, b: A): Boolean = end(b) <= start(a)
-  def intersect(a: A, b: A): Boolean = start(a) <= end(b) && start(b) <= end(a)
-  def contain(a: A, b: A): Boolean = start(a) <= start(b) && end(b) <= end(a)
-  def startIsSmaller(a: A, b: A): Boolean = start(a) < start(b)
-  def endIsSmaller(a: A, b: A): Boolean = end(a) < end(b)
-  def compareX(a: A, b: A): Int = x(a).compareTo(x(b))
-  def compareY(a: A, b: A): Int = y(a).compareTo(y(b))
-  def compareXY(a: A, b: A): Int = x(a).compareTo(y(b))
+abstract class IntIntervalType[A] extends IntervalType[A, Int] {
+  /**
+   * Ordering function of type V values
+   * @return
+   */
+  def ord = OrderingOpt.IntOrd
+}
+
+abstract class LongIntervalType[A] extends IntervalType[A, Long] {
+  /**
+   * Ordering function of type V values
+   * @return
+   */
+  def ord = OrderingOpt.LongOrd
 }
 
 
 /**
- * Optimized implementation of the interval types class for Int values
- * @tparam A repr
+ * Generic interval is a common trait of Interval and LInterval classes
+ * @tparam Repr representation
+ * @tparam V value type of the interval coordinates
  */
-trait IntInterval[A] extends IntervalType[A, Int] {
-  def compareX(a: A, b: A) = x(a) - x(b)
-  def compareY(a: A, b: A) = y(a) - y(b)
-  def compareXY(a: A, b: A) = (x(a) - y(b))
-  def precede(a: A, b: A): Boolean = end(a) <= start(b)
-  def follow(a: A, b: A): Boolean = end(b) <= start(a)
-  def intersect(a: A, b: A): Boolean = start(a) <= end(b) && start(b) <= end(a)
-  def contain(a: A, b: A): Boolean = start(a) <= start(b) && end(b) <= end(a)
-  def startIsSmaller(a: A, b: A): Boolean = start(a) < start(b)
-  def endIsSmaller(a: A, b: A): Boolean = end(a) < end(b)
-}
+trait GenInterval[Repr, V] { this : Repr =>
+  val start: V
+  val end: V
 
-/**
- * Optimized implementation of the interval types class for Long values
- * @tparam A  repr
- */
-trait LongInterval[A] extends IntervalType[A, Long] {
-  def compareX(a: A, b: A) = (x(a) - x(b)).toInt
-  def compareY(a: A, b: A) = (y(a) - y(b)).toInt
-  def compareXY(a: A, b: A) = (x(a) - y(b)).toInt
-  def precede(a: A, b: A): Boolean = end(a) <= start(b)
-  def follow(a: A, b: A): Boolean = end(b) <= start(a)
-  def intersect(a: A, b: A): Boolean = start(a) <= end(b) && start(b) <= end(a)
-  def contain(a: A, b: A): Boolean = start(a) <= start(b) && end(b) <= end(a)
-  def startIsSmaller(a: A, b: A): Boolean = start(a) < start(b)
-  def endIsSmaller(a: A, b: A): Boolean = end(a) < end(b)
+  override def toString = "%d:%d".format(start, end)
+  def size : V = intervalType.ord.diff(end, start)
+  def length : V = size
+
+  protected def intervalType : IntervalType[Repr, V]
+
+  /**
+   * Detect overlaps with the specified interval, including containment
+   * @param other
+   * @return
+   */
+  def intersectWith[A <: Repr](other: A): Boolean = intervalType.intersect(this, other)
+  def contains[A <: Repr](other: A): Boolean = intervalType.contain(this, other)
+  def containsPoint(pos: V): Boolean = intervalType.containPoint(this, pos)
+  def intersection[A <: Repr](other:A): Option[Repr] = intervalType.intersection(this, other)
 }
 
 
 /**
  * Closed interval [start, end], where start and end are Int values
  */
-class Interval(val start: Int, val end: Int) {
-  require(start <= end, "start must be smaller than end: [%d, %d]".format(start, end))
-  def size = end - start
-  override def toString = "%d:%d".format(start, end)
-  def r: Range = Range(start, end)
+class Interval(val start: Int, val end: Int) extends GenInterval[Interval, Int] {
+  require(start <= end, "start must be smaller than or equals to end: [%d, %d]".format(start, end))
+  protected def intervalType = IntIntervalType
 
-  import Interval.IntIntervalType._
-  def intersectWith(other: Interval): Boolean = intersect(this, other)
-  def contains(other: Interval): Boolean = contain(this, other)
-  def contains(pos: Int): Boolean = start <= pos && pos <= end
+  def toRange: Range = Range(start, end)
 }
 
 /**
@@ -156,26 +169,35 @@ class Interval(val start: Int, val end: Int) {
  * @param start
  * @param end
  */
-class LInterval(val start: Long, val end: Long) {
-  require(start <= end, "start must be smaller than end: [%d, %d]".format(start, end))
-  def size = end - start
-  override def toString = "%d:%d".format(start, end)
-  import LInterval.LongIntervalType._
-  def intersectWith(other: LInterval): Boolean = intersect(this, other)
-  def contains(other: LInterval): Boolean = contain(this, other)
-  def contains(pos: Long): Boolean = start <= pos && pos <= end
+class LInterval(val start: Long, val end: Long) extends GenInterval[LInterval, Long] {
+  require(start <= end, "start must be smaller than or equals to end: [%d, %d]".format(start, end))
+
+  protected def intervalType = LongIntervalType
+
 }
 
 object Interval {
-
-  implicit object IntIntervalType extends IntInterval[Interval] {
+  implicit object IntIntervalType extends IntervalType[Interval, Int] {
     def start(a: Interval) = a.start
     def end(a: Interval) = a.end
 
     def newInterval(base:Interval, newStart:Int, newEnd:Int) : Interval = {
       new Interval(newStart, newEnd)
     }
+
+    def ord = OrderingOpt.IntOrd
   }
+
+  object IntervalOrdering extends Ordering[Interval] {
+    def compare(x: Interval, y: Interval) = {
+      val diff = x.start - y.start
+      if(diff == 0)
+        x.end - y.end
+      else
+        diff
+    }
+  }
+
 
   def apply(s: Int, e: Int) = new Interval(s, e)
   def point(s: Int) = new Interval(s, s)
@@ -184,7 +206,8 @@ object Interval {
 
 object LInterval {
 
-  implicit object LongIntervalType extends LongInterval[LInterval] {
+  implicit object LongIntervalType extends IntervalType[LInterval, Long] {
+    def ord = OrderingOpt.LongOrd
     def start(a: LInterval) = a.start
     def end(a: LInterval) = a.end
     def newInterval(base:LInterval, newStart:Long, newEnd:Long) : LInterval = {
@@ -195,3 +218,4 @@ object LInterval {
   def apply(s: Long, e: Long) = new LInterval(s, e)
   def point(s: Long) = new LInterval(s, s)
 }
+

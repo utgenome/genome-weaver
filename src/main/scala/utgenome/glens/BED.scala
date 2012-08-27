@@ -16,7 +16,7 @@
 
 package utgenome.glens
 
-import collection.{IntInterval, GTable}
+import collection.{GTable, GInterval, IntIntervalType, GenomicInterval}
 import java.io.File
 import io.Source
 import xerial.core.log.Logging
@@ -28,6 +28,23 @@ import xerial.core.log.Logging
 //
 //--------------------------------------
 
+object BED {
+  implicit object BEDIntervalType extends IntIntervalType[BED] {
+    def start(a: BED) = a.start
+    def end(a: BED) = a.start
+    def newInterval(base: BED, newStart: Int, newEnd: Int) = new BED(base.chr, newStart, newEnd, base.strand)
+  }
+
+  def parse(line: String): BED = {
+    val c = line.split("\\s+")
+    // set to 1-origin
+    new BED(c(0), c(1).toInt + 1, c(2).toInt + 1, Strand(c(3)))
+  }
+
+}
+
+
+
 /**
  * UCSC's BED format
  * @param chr
@@ -36,8 +53,7 @@ import xerial.core.log.Logging
  */
 class BED(val chr: String, val start: Int, val end: Int, val strand: Strand)
   extends GenomicInterval[BED] {
-  def newRange(newStart: Int, newEnd: Int) = new BED(chr, newStart, newEnd, strand)
-
+  protected def intervalType = BED.BEDIntervalType
 }
 
 /**
@@ -127,33 +143,28 @@ class BEDGene
 
 }
 
-object BED {
 
-  implicit object BEDGeneIntervalType extends IntInterval[BED] {
-    def start(a: BED) = a.start
-    def end(a: BED) = a.end
-    def newInterval(base: BED, newStart: Int, newEnd: Int) = base.newRange(newStart, newEnd)
-  }
-
-  def apply(line: String): BED = {
-    val c = line.split("\\s+")
-    // set to 1-origin
-    new BED(c(0), c(1).toInt + 1, c(2).toInt + 1, Strand(c(3)))
-  }
-
-  def load(bedFile:String) : GTable[BED] = {
-    val t = new GTable[BED]
-
-
-
-    t
-  }
-
-}
 
 object BEDGene extends Logging {
 
-
+  implicit object BEDGeneType extends IntIntervalType[BEDGene] {
+    def start(a: BEDGene) = a.start
+    def end(a: BEDGene) = a.start
+    def newInterval(base: BEDGene, newStart: Int, newEnd: Int) = new BEDGene(
+      base.chr,
+      newStart,
+      newEnd,
+      base.strand,
+      base.name,
+      base.score,
+      base.thickStart,
+      base.thickEnd,
+      base.itemRgb,
+      base.blockCount,
+      base.blockSizes,
+      base.blockStarts
+    )
+  }
 
   def apply(line: String): BEDGene = {
     def parseBlock(blocks: String) = {

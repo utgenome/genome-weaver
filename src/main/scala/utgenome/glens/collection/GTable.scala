@@ -1,8 +1,6 @@
 package utgenome.glens.collection
 
 import collection.mutable
-import utgenome.glens.{GenomicInterval, GLocus, GInterval}
-
 
 //--------------------------------------
 //

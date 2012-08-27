@@ -7,6 +7,8 @@
 
 package utgenome.glens
 
+import collection.Interval
+import collection.Interval.IntervalOrdering
 import xerial.core.XerialSpec
 
 /**

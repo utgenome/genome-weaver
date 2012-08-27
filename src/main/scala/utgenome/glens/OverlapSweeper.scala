@@ -8,6 +8,7 @@
 package utgenome.glens
 
 import annotation.tailrec
+import collection.Interval
 
 /**
  * Sweeper of the genome range

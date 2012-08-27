@@ -8,17 +8,18 @@
  *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, 
+ * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
 
-package utgenome.glens
+package utgenome.glens.collection
 
-import collection.{PrioritySearchTree, GenPrioritySearchTree}
+
 import util.Random
 import xerial.core.XerialSpec
+import utgenome.glens.{Reverse, Forward}
 
 //--------------------------------------
 //
@@ -36,13 +37,13 @@ class GenomeRangeTest extends XerialSpec {
 
   "interval" should {
     "have equality for the same range" in {
-      val i1 = new Interval(1, 100)
-      val i2 = new Interval(1, 100)
+      val i1 : Interval = new Interval(1, 100)
+      val i2 : Interval = new Interval(1, 100)
       i1.hashCode must be(i2.hashCode)
-      i1 must be(i2)
 
+      i1 should be (i2)
       val i3 = new Interval(1, 109)
-      i3 must not be (i1)
+      i3 should not be (i1)
     }
 
     "have no significant performance overhead" in {
@@ -65,11 +66,11 @@ class GenomeRangeTest extends XerialSpec {
       val g1 = new GInterval("chr1", 34, 140, Forward)
       val g2 = new GInterval("chr1", 34, 140, Forward)
       g1.hashCode must be(g2.hashCode)
-      g1 must be(g2)
+      g1 should be(g2)
 
       // compare different type of objects
       val g3 = new Interval(34, 140)
-      g3 must not be (g1)
+      g3 should not be (g1)
       g3.hashCode must not be (g1.hashCode)
     }
 
