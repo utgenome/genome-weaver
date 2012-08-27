@@ -124,7 +124,7 @@ class LPrioritySearchTree[A](tree: Tree[A, Holder[A]], override val size: Int)
   override def +(k: A) = new LPrioritySearchTree(root.update(k, null), size + 1)
 }
 
- 
+
 /**
  * A base class of the persistent priority search tree.
  *
