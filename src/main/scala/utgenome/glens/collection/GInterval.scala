@@ -36,6 +36,9 @@ trait InChromosome {
 trait GenomicInterval[Repr <: GenomicInterval[Repr]] extends InChromosome with Eq { this : Repr =>
   protected def intervalType : IntervalType[Repr, Int]
 
+  val start : Int
+  val end : Int
+
   val strand : Strand
 
   override def toString = "%d:%d".format(intervalType.start(this), intervalType.end(this))

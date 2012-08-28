@@ -25,6 +25,7 @@ package utgenome.glens.collection
 
 import RedBlackTree._
 import collection.mutable
+import xerial.core.log.Logging
 
 
 object GenPrioritySearchTree {
@@ -134,7 +135,7 @@ class LPrioritySearchTree[A](tree: Tree[A, Holder[A]], override val size: Int)
  * @tparam A
  */
 class GenPrioritySearchTree[A, V](tree: Tree[A, Holder[A]], override val size: Int)(implicit iv: IntervalType[A, V], ord:Ordering[V])
-  extends RedBlackTree[A, Holder[A]] with Iterable[A] {
+  extends RedBlackTree[A, Holder[A]] with Iterable[A] with Logging {
 
   protected def root: Tree[A, Holder[A]] = if (tree == null) Empty else tree
   protected def isSmaller(a: A, b: A): Boolean = iv.xIsSmaller(a, b)
@@ -151,7 +152,13 @@ class GenPrioritySearchTree[A, V](tree: Tree[A, Holder[A]], override val size: I
    */
   override protected def newKey(c: A, l: Option[A], r: Option[A]): A = {
     def m(k1: A, k2: Option[A]): A = k2.map(iv.yUpperBound(k1, _)).getOrElse(k1)
-    m(m(c, l), r)
+    val k = m(m(c, l), r)
+    if(l.isDefined)
+      require(iv.yIsSmallerThanOrEq(l.get, k), "[illegal upperbound] new key:%s, c:%s, left:%s, right:%s".format(k, c, l, r))
+    if(r.isDefined)
+      require(iv.yIsSmallerThanOrEq(r.get, k), "[illegal upperbound] new key:%s, c:%s, left:%s, right:%s".format(k, c, l, r))
+    //trace("upper bound of (c:%s, l:%s, r:%s) = %s", iv.end(c), l map (iv.end(_)), r map (iv.end(_)), iv.end(k))
+    k
   }
 
   override protected def newValue(key: A, value: Holder[A]): Holder[A] = Single(key)
@@ -195,6 +202,7 @@ class GenPrioritySearchTree[A, V](tree: Tree[A, Holder[A]], override val size: I
    */
   def intersectWith[R](range: R)(implicit iv2:IntervalType[R, V]): Iterator[A] = {
     def find(t: Tree[A, Holder[A]]): Iterator[A] = {
+      trace("find range:%s, at key node:%s (left:%s, right:%s)", range, t.key, t.left.key, t.right.key)
       if (t.isEmpty || iv2.compareXY(range, t.key) > 0) {
         // This tree contains no answer since yUpperBound (t.key.x) < range.x
         Iterator.empty

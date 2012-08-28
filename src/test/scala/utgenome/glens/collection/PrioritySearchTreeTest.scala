@@ -79,9 +79,11 @@ class PrioritySearchTreeTest extends XerialSpec {
       p += GInterval("chr1", 34, 50)
       p += GInterval("chr1", 53, 59)
 
-      val r = p.intersectWith(Interval(25, 38))
+      debug("tree:%s", p)
+      debug("query GIntervals with Interval")
+      val r = p.intersectWith(Interval(25, 38)).toList
       debug(r.mkString(", "))
-      r.toSeq should have size (2)
+      r.toList should have size (2)
     }
 
 

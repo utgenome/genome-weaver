@@ -21,7 +21,7 @@ object GTable {
     t
   }
 
-  def apply[A <: GenomicInterval[A]](input:Seq[A])(implicit iv:IntervalType[A, Int]) : GTable[A] = {
+  def apply[A <: GenomicInterval[_]](input:Seq[A])(implicit iv:IntervalType[A, Int]) : GTable[A] = {
     val t = new GTable[A]
     input foreach { t += _ }
     t
@@ -34,7 +34,7 @@ object GTable {
  *
  * @author leo
  */
-class GTable[A <: GenomicInterval[A]](implicit iv:IntervalType[A, Int]) extends Traversable[A] {
+class GTable[A <: GenomicInterval[_]](implicit iv:IntervalType[A, Int]) extends Traversable[A] {
   
   private val table = mutable.Map[String, PrioritySearchTree[A]]()
 

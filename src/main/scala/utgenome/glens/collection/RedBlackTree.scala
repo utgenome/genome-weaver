@@ -98,7 +98,7 @@ abstract class RedBlackTree[A, B] extends Logging {
     def isBlack = true
     def left = Empty
     def right = Empty
-    def key = throw new NoSuchElementException("No key for Empty node")
+    def key = null.asInstanceOf[A]
     def update(k: A, v: B) = blacken(insert(k, v))
     def insert(k: A, v: B) = RedTree(k, newValue(k, v), Empty, Empty)
     def lookup(e: A): Tree[A, B] = this

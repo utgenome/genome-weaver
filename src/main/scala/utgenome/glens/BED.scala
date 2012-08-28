@@ -20,6 +20,7 @@ import collection.{GInterval, IntIntervalType, GenomicInterval}
 import java.io.File
 import io.Source
 import xerial.core.log.Logging
+import xerial.core.lens.Eq
 
 //--------------------------------------
 //
@@ -31,7 +32,7 @@ import xerial.core.log.Logging
 object BED {
   implicit object BEDIntervalType extends IntIntervalType[BED] {
     def start(a: BED) = a.start
-    def end(a: BED) = a.start
+    def end(a: BED) = a.end
     def newInterval(base: BED, newStart: Int, newEnd: Int) = new BED(base.chr, newStart, newEnd, base.strand)
   }
 
@@ -76,9 +77,9 @@ class BEDGene
   val blockSizes: Array[Int],
   val blockStarts: Array[Int]
 )
-  extends GenomicInterval[BEDGene] {
+  extends GenomicInterval[BEDGene] with Eq {
 
-  override def toString = "%s %s[%s,%s)".format(name, chr, start, end)
+  override def toString = "%s %s[%s,%s]".format(name, chr, start, end)
 
   private def concatenate(blocks: Array[Int]): String = {
     val b = new StringBuilder
@@ -150,7 +151,7 @@ object BEDGene extends Logging {
 
   implicit object BEDGeneType extends IntIntervalType[BEDGene] {
     def start(a: BEDGene) = a.start
-    def end(a: BEDGene) = a.start
+    def end(a: BEDGene) = a.end
     def newInterval(base: BEDGene, newStart: Int, newEnd: Int) = new BEDGene(
       base.chr,
       newStart,
