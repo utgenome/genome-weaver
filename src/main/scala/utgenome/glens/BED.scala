@@ -16,7 +16,7 @@
 
 package utgenome.glens
 
-import collection.{GTable, GInterval, IntIntervalType, GenomicInterval}
+import collection.{GInterval, IntIntervalType, GenomicInterval}
 import java.io.File
 import io.Source
 import xerial.core.log.Logging
@@ -57,7 +57,7 @@ class BED(val chr: String, val start: Int, val end: Int, val strand: Strand)
 }
 
 /**
- * BED full entry. Original BED file is zero-origin, but we use one-origin for compatibility with the other formats
+ * BED full entry. Original BED file is zero-origin, but this class uses one-origin for the compatibility with the other biological data formats
  *
  * @author leo
  */

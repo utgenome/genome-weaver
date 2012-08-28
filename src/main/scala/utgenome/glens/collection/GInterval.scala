@@ -10,11 +10,26 @@ package utgenome.glens.collection
 import utgenome.glens.{Reverse, Forward, Strand}
 import xerial.core.lens.Eq
 
+object GenomicInterval {
+
+  class GenomicIntervalOrdering[A <: GenomicInterval[_]](implicit iv : IntervalType[A, Int]) extends Ordering[A] {
+    def compare(x: A, y: A) = {
+      var diff = x.chr.compare(y.chr)
+      if(diff == 0)
+        diff = iv.compareX(x, y)
+      if(diff == 0)
+        diff = iv.compareY(x, y)
+      diff
+    }
+  }
+
+}
+
 
 /**
  * Common trait for representing intervals in genome sequences with chr and strand information
  */
-trait GenomicInterval[Repr <: GenomicInterval[Repr]] { this : Repr =>
+trait GenomicInterval[Repr <: GenomicInterval[Repr]] extends Eq { this : Repr =>
   protected def intervalType : IntervalType[Repr, Int]
 
   val chr : String
@@ -22,6 +37,7 @@ trait GenomicInterval[Repr <: GenomicInterval[Repr]] { this : Repr =>
 
   override def toString = "%d:%d".format(intervalType.start(this), intervalType.end(this))
   def size : Int = intervalType.ord.diff(intervalType.end(this), intervalType.start(this))
+  def length : Int = size
 
   def inSameChr[A <: GenomicInterval[_]](other: A): Boolean = this.chr == other.chr
 
@@ -83,7 +99,7 @@ object GInterval {
  * @author leo
  */
 class GInterval(val chr: String, val start: Int, val end: Int, val strand: Strand)
-  extends GenomicInterval[GInterval] with Eq {
+  extends GenomicInterval[GInterval]  {
   override def toString = "%s:[%d, %d):%s".format(chr, start, end, strand)
 
   protected def intervalType = GInterval.GIntervalType

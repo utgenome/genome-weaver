@@ -20,6 +20,13 @@ object GTable {
     }
     t
   }
+
+  def apply[A <: GInterval](input:Seq[A]) : GTable[A] = {
+    val t = new GTable[A]
+    input foreach { t += _ }
+    t
+  }
+
 }
 
 /**
@@ -34,7 +41,7 @@ class GTable[A <: GenomicInterval[A]](implicit iv:IntervalType[A, Int]) extends 
 
   def chrSet = table.keySet
 
-  def apply(chr:String) = table(chr)
+  def apply(chr:String) = table.getOrElseUpdate(chr, PrioritySearchTree.empty[A](iv))
 
   override def size : Int = table.values map {_.size} sum
 
