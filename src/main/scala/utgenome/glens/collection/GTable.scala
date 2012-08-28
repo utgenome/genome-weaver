@@ -21,7 +21,7 @@ object GTable {
     t
   }
 
-  def apply[A <: GInterval](input:Seq[A]) : GTable[A] = {
+  def apply[A <: GenomicInterval[A]](input:Seq[A])(implicit iv:IntervalType[A, Int]) : GTable[A] = {
     val t = new GTable[A]
     input foreach { t += _ }
     t
