@@ -36,8 +36,7 @@ trait GenomicInterval[Repr <: GenomicInterval[Repr]] extends Eq { this : Repr =>
   val strand : Strand
 
   override def toString = "%d:%d".format(intervalType.start(this), intervalType.end(this))
-  def size : Int = intervalType.ord.diff(intervalType.end(this), intervalType.start(this))
-  def length : Int = size
+  def length : Int = intervalType.ord.diff(intervalType.end(this), intervalType.start(this))
 
   def inSameChr[A <: GenomicInterval[_]](other: A): Boolean = this.chr == other.chr
 
@@ -74,18 +73,19 @@ trait GenomicInterval[Repr <: GenomicInterval[Repr]] extends Eq { this : Repr =>
 
 object GInterval {
 
-  implicit object GIntervalType extends IntervalType[GInterval, Int] {
-
-    def start(a: GInterval) = a.start
-    def end(a: GInterval) = a.end
-
-    def newInterval(base:GInterval, newStart:Int, newEnd:Int) = new GInterval(base.chr, newStart, newEnd, base.strand)
-
+  abstract class GIntervalTypeBase[A <: GInterval] extends IntervalType[A, Int] {
     /**
      * Ordering function of type V values
      * @return
      */
     def ord = OrderingOpt.IntOrd
+    def start(a: A) = a.start
+    def end(a: A) = a.end
+  }
+
+
+  implicit object GIntervalType extends GIntervalTypeBase[GInterval] {
+    def newInterval(base:GInterval, newStart:Int, newEnd:Int) = new GInterval(base.chr, newStart, newEnd, base.strand)
   }
 
   def apply(chr: String, start: Int, end: Int, strand: Strand) = new GInterval(chr, start, end, strand)

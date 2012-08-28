@@ -19,7 +19,8 @@ package utgenome.glens.collection
 
 import util.Random
 import xerial.core.XerialSpec
-import utgenome.glens.{Reverse, Forward}
+import utgenome.glens.{Strand, Reverse, Forward}
+import utgenome.glens.collection.GInterval.GIntervalTypeBase
 
 //--------------------------------------
 //
@@ -72,6 +73,18 @@ class GenomeRangeTest extends XerialSpec {
       val g3 = new Interval(34, 140)
       g3 should not be (g1)
       g3.hashCode must not be (g1.hashCode)
+    }
+
+    "allow type extention" in {
+
+      class MyGInterval(chr:String, start:Int, end:Int, strand:Strand) extends GInterval(chr, start, end, strand)
+      implicit object MyGIntevalType extends GIntervalTypeBase[MyGInterval] {
+        def newInterval(base: MyGInterval, newStart: Int, newEnd: Int) = new MyGInterval(base.chr, newStart, newEnd, base.strand)
+      }
+
+      var p = PrioritySearchTree.empty[MyGInterval]
+      p += new MyGInterval("chr1", 1, 200, Forward)
+
     }
 
 
