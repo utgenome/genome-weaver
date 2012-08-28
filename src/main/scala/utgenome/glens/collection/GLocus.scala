@@ -14,9 +14,8 @@ import utgenome.glens.{Reverse, Forward, Strand}
 /**
  * Locus in a genome sequence with chr and strand information
  */
-trait GenomicLocus[Repr, RangeRepr] extends Eq {
+trait GenomicLocus[Repr, RangeRepr] extends InChromosome with Eq {
   val start: Int
-  val chr : String
   val strand : Strand
 
   /**

@@ -25,22 +25,25 @@ object GenomicInterval {
 
 }
 
+trait InChromosome {
+  val chr : String
+}
+
 
 /**
  * Common trait for representing intervals in genome sequences with chr and strand information
  */
-trait GenomicInterval[Repr <: GenomicInterval[Repr]] extends Eq { this : Repr =>
+trait GenomicInterval[Repr <: GenomicInterval[Repr]] extends InChromosome with Eq { this : Repr =>
   protected def intervalType : IntervalType[Repr, Int]
 
-  val chr : String
   val strand : Strand
 
   override def toString = "%d:%d".format(intervalType.start(this), intervalType.end(this))
   def length : Int = intervalType.ord.diff(intervalType.end(this), intervalType.start(this))
 
-  def inSameChr[A <: GenomicInterval[_]](other: A): Boolean = this.chr == other.chr
+  def inSameChr[A <: InChromosome](other: A): Boolean = this.chr == other.chr
 
-  def checkChr[A <: GenomicInterval[_], Ret](other: A, success: => Ret, fail: => Ret): Ret = {
+  def checkChr[A <: InChromosome, Ret](other: A, success: => Ret, fail: => Ret): Ret = {
     if (inSameChr(other))
       success
     else
@@ -63,6 +66,10 @@ trait GenomicInterval[Repr <: GenomicInterval[Repr]] extends Eq { this : Repr =>
 
   def contains[A <: GenomicInterval[_]](other: A)(implicit iv:IntervalType[A, Int]): Boolean = {
     checkChr(other, intervalType.contain(this, other), false)
+  }
+
+  def containsPoint(pos:GLocus) : Boolean = {
+    checkChr(pos, intervalType.containPoint(this, pos.start), false)
   }
 
   def intersection[A <: GenomicInterval[_]](other: A)(implicit iv:IntervalType[A, Int]): Option[Repr] = {
