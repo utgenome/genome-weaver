@@ -65,6 +65,10 @@ class GTable[A <: GenomicInterval[A]](implicit iv:IntervalType[A, Int]) extends 
     } getOrElse Iterable.empty[A]
   }
 
+  def hasOverlap[B <: GenomicInterval[_]](range:B)(implicit iv2:IntervalType[B, Int]) : Boolean = {
+    !intersectWith(range).isEmpty
+  }
+
   def foreach[U](f: (A) => U) {
     table.values foreach { p => p.foreach(f(_)) }
   }
