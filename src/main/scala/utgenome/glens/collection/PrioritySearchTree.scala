@@ -25,7 +25,7 @@ package utgenome.glens.collection
 
 import RedBlackTree._
 import collection.mutable
-import xerial.core.log.Logging
+import xerial.core.log.Logger
 
 
 object GenPrioritySearchTree {
@@ -135,7 +135,7 @@ class LPrioritySearchTree[A](tree: Tree[A, Holder[A]], override val size: Int)
  * @tparam A
  */
 class GenPrioritySearchTree[A, V](tree: Tree[A, Holder[A]], override val size: Int)(implicit iv: IntervalType[A, V], ord:Ordering[V])
-  extends RedBlackTree[A, Holder[A]] with Iterable[A] with Logging {
+  extends RedBlackTree[A, Holder[A]] with Iterable[A] with Logger {
 
   protected def root: Tree[A, Holder[A]] = if (tree == null) Empty else tree
   protected def isSmaller(a: A, b: A): Boolean = iv.xIsSmaller(a, b)

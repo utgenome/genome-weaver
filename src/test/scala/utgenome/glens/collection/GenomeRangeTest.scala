@@ -34,7 +34,6 @@ import utgenome.glens.collection.GInterval.GIntervalTypeBase
  */
 class GenomeRangeTest extends XerialSpec {
 
-  import xerial.core.util.StopWatch._
 
   "interval" should {
     "have equality for the same range" in {

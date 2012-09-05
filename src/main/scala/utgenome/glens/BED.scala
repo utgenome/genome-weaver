@@ -19,8 +19,8 @@ package utgenome.glens
 import collection.{GInterval, IntIntervalType, GenomicInterval}
 import java.io.File
 import io.Source
-import xerial.core.log.Logging
-import xerial.core.lens.Eq
+import xerial.core.log.Logger
+import xerial.lens.Eq
 
 //--------------------------------------
 //
@@ -147,7 +147,7 @@ class BEDGene
 
 
 
-object BEDGene extends Logging {
+object BEDGene extends Logger {
 
   implicit object BEDGeneType extends IntIntervalType[BEDGene] {
     def start(a: BEDGene) = a.start

@@ -12,7 +12,7 @@ import scala.Some
 import annotation.tailrec
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
 import java.util.zip.GZIPInputStream
-import xerial.core.log.Logging
+import xerial.core.log.Logger
 import xerial.core.io.text.LineReader
 
 
@@ -38,7 +38,7 @@ import xerial.core.io.text.LineReader
  *
  * @author leo
  */
-object FASTA extends Logging {
+object FASTA extends Logger {
 
 
   private def create2bitIndexFrom(stream:Stream[FASTAEntryReader]) : FASTAIndex2bit = {
