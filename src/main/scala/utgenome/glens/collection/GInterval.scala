@@ -85,11 +85,6 @@ trait GenomicInterval[Repr <: GenomicInterval[Repr]] extends InChromosome with E
 object GInterval {
 
   abstract class GIntervalTypeBase[A <: GInterval] extends IntervalType[A] {
-    /**
-     * Ordering function of type V values
-     * @return
-     */
-    def ord = OrderingOpt.IntOrd
     def start(a: A) = a.start
     def end(a: A) = a.end
   }

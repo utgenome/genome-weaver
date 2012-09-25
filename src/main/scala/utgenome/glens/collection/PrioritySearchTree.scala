@@ -103,11 +103,8 @@ class PrioritySearchTree[A](tree: Tree[Interval, Holder[A]], override val size: 
   extends GenPrioritySearchTree[A, PrioritySearchTree[A]](tree, size)(iv) {
 
   protected[this] def newTreeBuilder : mutable.Builder[A, PrioritySearchTree[A]] = PrioritySearchTree.newBuilder[A]
-
-  protected def isSmaller(a: Interval, b: Interval): Boolean = a.start < b.start 
-  
+  protected def isSmaller(a: Interval, b: Interval): Boolean = a.start < b.start
   protected def createKeyFrom(e:A) : Interval = Interval(iv.start(e), iv.end(e))
-  
   protected def newTree(tree:Tree[Interval, Holder[A]], size:Int) = new PrioritySearchTree(tree, size)
 }
 
@@ -131,7 +128,7 @@ abstract class GenPrioritySearchTree[A, Repr](tree: Tree[Interval, Holder[A]], o
   protected def isSmaller(a: K, b: K): Boolean
   protected def newTree(tree:Tree[K, Holder[A]], size:Int) : Repr
   protected def createKeyFrom(e:A) : K
-  
+
   protected def updateValue(current:Holder[A], newValue:Holder[A]): Holder[A] = current + newValue
 
   override def toString = tree.toString

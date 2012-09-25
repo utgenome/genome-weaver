@@ -151,20 +151,6 @@ object BEDGene extends Logging {
   implicit object BEDGeneType extends IntervalType[BEDGene] {
     def start(a: BEDGene) = a.start
     def end(a: BEDGene) = a.end
-    def newInterval(base: BEDGene, newStart: Int, newEnd: Int) = new BEDGene(
-      base.chr,
-      newStart,
-      newEnd,
-      base.strand,
-      base.name,
-      base.score,
-      base.thickStart,
-      base.thickEnd,
-      base.itemRgb,
-      base.blockCount,
-      base.blockSizes,
-      base.blockStarts
-    )
   }
 
   def apply(line: String): BEDGene = {
