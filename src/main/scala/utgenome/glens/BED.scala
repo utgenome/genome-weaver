@@ -16,7 +16,7 @@
 
 package utgenome.glens
 
-import collection.{GInterval, IntIntervalType, GenomicInterval}
+import collection.{Interval, IntervalType, GInterval, GenomicInterval}
 import java.io.File
 import io.Source
 import xerial.lens.Eq
@@ -30,10 +30,9 @@ import xerial.core.log.Logger
 //--------------------------------------
 
 object BED {
-  implicit object BEDIntervalType extends IntIntervalType[BED] {
+  implicit object BEDIntervalType extends IntervalType[BED] {
     def start(a: BED) = a.start
     def end(a: BED) = a.end
-    def newInterval(base: BED, newStart: Int, newEnd: Int) = new BED(base.chr, newStart, newEnd, base.strand)
   }
 
   def parse(line: String): BED = {
@@ -149,23 +148,9 @@ class BEDGene
 
 object BEDGene extends Logger {
 
-  implicit object BEDGeneType extends IntIntervalType[BEDGene] {
+  implicit object BEDGeneType extends IntervalType[BEDGene] {
     def start(a: BEDGene) = a.start
     def end(a: BEDGene) = a.end
-    def newInterval(base: BEDGene, newStart: Int, newEnd: Int) = new BEDGene(
-      base.chr,
-      newStart,
-      newEnd,
-      base.strand,
-      base.name,
-      base.score,
-      base.thickStart,
-      base.thickEnd,
-      base.itemRgb,
-      base.blockCount,
-      base.blockSizes,
-      base.blockStarts
-    )
   }
 
   def apply(line: String): BEDGene = {
