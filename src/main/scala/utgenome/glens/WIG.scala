@@ -2,7 +2,7 @@ package utgenome.glens
 
 import util.parsing.combinator.RegexParsers
 import java.io.{FileReader, BufferedReader}
-import xerial.core.log.Logging
+import xerial.core.log.Logger
 
 //--------------------------------------
 //
@@ -40,7 +40,7 @@ sealed abstract class WIG
  * Wiggle format (WIG)
  * http://genome.ucsc.edu/goldenPath/help/wiggle.html
  */
-object WIGParser extends RegexParsers with Logging {
+object WIGParser extends RegexParsers with Logger {
 
   /**
    * remove quotation symbols

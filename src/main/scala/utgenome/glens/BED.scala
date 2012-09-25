@@ -16,9 +16,12 @@
 
 package utgenome.glens
 
+import collection.{Interval, IntervalType, GInterval, GenomicInterval}
 import java.io.File
 import io.Source
-import xerial.core.log.Logging
+import xerial.lens.Eq
+import xerial.core.log.Logger
+
 
 //--------------------------------------
 //
@@ -26,6 +29,22 @@ import xerial.core.log.Logging
 // Since: 2012/03/16 14:02
 //
 //--------------------------------------
+
+object BED {
+  implicit object BEDIntervalType extends IntervalType[BED] {
+    def start(a: BED) = a.start
+    def end(a: BED) = a.end
+  }
+
+  def parse(line: String): BED = {
+    val c = line.split("\\s+")
+    // set to 1-origin
+    new BED(c(0), c(1).toInt + 1, c(2).toInt + 1, Strand(c(3)))
+  }
+
+}
+
+
 
 /**
  * UCSC's BED format
@@ -35,21 +54,20 @@ import xerial.core.log.Logging
  */
 class BED(val chr: String, val start: Int, val end: Int, val strand: Strand)
   extends GenomicInterval[BED] {
-  def newRange(newStart: Int, newEnd: Int) = new BED(chr, newStart, newEnd, strand)
-
+  protected def intervalType = BED.BEDIntervalType
 }
 
 /**
- * BED full entry. Original BED file is zero-origin, but we use one-origin for compatibility with the other formats
+ * BED full entry. Original BED file is zero-origin, but this class uses one-origin for the compatibility with the other biological data formats
  *
  * @author leo
  */
 class BEDGene
   (
-  chr: String,
-  start: Int,
-  end: Int,
-  strand: Strand,
+  val chr: String,
+  val start: Int,
+  val end: Int,
+  val strand: Strand,
   val name: String,
   val score: Int,
   val thickStart: Int,
@@ -59,9 +77,9 @@ class BEDGene
   val blockSizes: Array[Int],
   val blockStarts: Array[Int]
 )
-  extends BED(chr, start, end, strand) {
+  extends GenomicInterval[BEDGene] with Eq {
 
-  override def toString = "%s %s[%s,%s)".format(name, chr, start, end)
+  override def toString = "%s %s[%s,%s]".format(name, chr, start, end)
 
   private def concatenate(blocks: Array[Int]): String = {
     val b = new StringBuilder
@@ -124,17 +142,18 @@ class BEDGene
     }
   }
 
+  protected def intervalType = BEDGene.BEDGeneType
 }
 
-object BED {
-  def apply(line: String): BED = {
-    val c = line.split("\\s+")
-    // set to 1-origin
-    new BED(c(0), c(1).toInt + 1, c(2).toInt + 1, Strand(c(3)))
+
+
+object BEDGene extends Logger {
+
+  implicit object BEDGeneType extends IntervalType[BEDGene] {
+    def start(a: BEDGene) = a.start
+    def end(a: BEDGene) = a.end
   }
-}
 
-object BEDGene extends Logging {
   def apply(line: String): BEDGene = {
     def parseBlock(blocks: String) = {
       val c = blocks.trim.stripSuffix(",").split(",")
