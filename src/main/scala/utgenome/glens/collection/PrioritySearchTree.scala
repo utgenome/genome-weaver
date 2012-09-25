@@ -25,7 +25,7 @@ package utgenome.glens.collection
 
 import RedBlackTree._
 import collection.mutable
-import xerial.core.log.Logging
+import xerial.core.log.Logger
 
 
 object GenPrioritySearchTree {
@@ -118,7 +118,7 @@ class PrioritySearchTree[A](tree: Tree[Interval, Holder[A]], override val size: 
  * @tparam A element type
  */
 abstract class GenPrioritySearchTree[A, Repr](tree: Tree[Interval, Holder[A]], override val size: Int)(implicit iv: IntervalType[A])
-  extends RedBlackTree[Interval, Holder[A]] with Iterable[A] with Logging { self =>
+  extends RedBlackTree[Interval, Holder[A]] with Iterable[A] with Logger { self =>
 
   type K = Interval
 

@@ -17,7 +17,6 @@ class PrioritySearchTreeTest extends XerialSpec {
 
 
   def overlapQuery(p: PrioritySearchTree[Interval], q: Interval) {
-    import xerial.core.util.StopWatch._
 
     var overlapped: Array[Interval] = null
     var overlapped_ans: Array[Interval] = null
@@ -68,8 +67,9 @@ class PrioritySearchTreeTest extends XerialSpec {
       val rng = p.range(Some(5), Some(23))
       debug("range:%s", rng.mkString(", "))
 
-      overlapQuery(p, Interval(6, 10))
-      overlapQuery(p, Interval(13, 18))
+      val a1 = overlapQuery(p, Interval(6, 10))
+      debug(a1)
+      val a2 = overlapQuery(p, Interval(13, 18))
 
     }
 
