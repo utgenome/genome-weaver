@@ -8,14 +8,14 @@
 package utgenome.glens
 
 import annotation.tailrec
-import collection.{IntIntervalType}
+import collection.IntervalType
 
 /**
  * Sweeper of the genome range
  *
  * @author leo
  */
-class OverlapSweeper[A](list:TraversableOnce[A])(implicit tc:IntIntervalType[A]) extends Iterator[Seq[A]] {
+class OverlapSweeper[A](list:TraversableOnce[A])(implicit tc:IntervalType[A]) extends Iterator[Seq[A]] {
 
   private val it = list.toIterator
   private var nextOverlappedSet : Option[Seq[A]] = None
