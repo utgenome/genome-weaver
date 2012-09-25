@@ -7,25 +7,25 @@
 
 package utgenome.glens
 
-import collection.{mutable, SortedSet}
 import annotation.tailrec
+import collection.{IntIntervalType}
 
 /**
  * Sweeper of the genome range
  *
  * @author leo
  */
-class OverlapSweeper[A <: Interval](list:TraversableOnce[A]) extends Iterator[Seq[A]] {
+class OverlapSweeper[A](list:TraversableOnce[A])(implicit tc:IntIntervalType[A]) extends Iterator[Seq[A]] {
 
   private val it = list.toIterator
   private var nextOverlappedSet : Option[Seq[A]] = None
   private var sweepLine = 0
 
-  private val endValueQueue = new mutable.PriorityQueue[A]()(new Ordering[A] {
+  private val endValueQueue = new scala.collection.mutable.PriorityQueue[A]()(new Ordering[A] {
     def compare(x: A, y: A) = {
-      val diff = y.end - x.end // lower end value has high priority
+      val diff = tc.end(y) - tc.end(x) // lower end value has high priority
       if(diff == 0)
-        y.start - x.start
+        tc.start(y) - tc.start(x)
       else
         diff
     }
@@ -37,10 +37,10 @@ class OverlapSweeper[A <: Interval](list:TraversableOnce[A]) extends Iterator[Se
       if(it.hasNext) {
         val r = it.next
         endValueQueue += r  // enqueue
-        sweepLine = r.start
+        sweepLine = tc.start(r)
 
         // sweep intervals whose end value is less than sweepLine
-        while(!endValueQueue.isEmpty && endValueQueue.head.end < sweepLine) {
+        while(!endValueQueue.isEmpty && tc.end(endValueQueue.head) < sweepLine) {
           endValueQueue.dequeue
         }
         if(endValueQueue.size > 1)

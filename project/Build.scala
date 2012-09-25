@@ -69,7 +69,7 @@ object GlensBuild extends Build {
 	  <url>github.com/xerial/glens.git</url>
         </scm>
         <properties>
-          <scala.version>2.9.2</scala.version>
+          <scala.version>{SCALA_VERSION}</scala.version>
           <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         </properties>
         <developers>
@@ -101,11 +101,12 @@ object GlensBuild extends Build {
     id = "glens",
     base = file("."),
     settings = buildSettings ++ Seq(libraryDependencies ++= testLib :+ apacheCommons)
-  ) aggregate(xerialCore, xerialLens) dependsOn(xerialCore % dependentScope, xerialLens)
+  ) aggregate(xerialCore, xerialLens, xerialCui) dependsOn(xerialCore % dependentScope, xerialLens, xerialCui)
 
   //lazy val xerial = RootProject(file("xerial"))
   lazy val xerialCore = ProjectRef(file("xerial"), "xerial-core") 
-  lazy val xerialLens = ProjectRef(file("xerial"), "xerial-lens") 
+  lazy val xerialLens = ProjectRef(file("xerial"), "xerial-lens")
+  lazy val xerialCui = ProjectRef(file("xerial"), "xerial-cui")
 
 }
 
