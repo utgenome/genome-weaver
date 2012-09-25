@@ -12,7 +12,7 @@ import xerial.core.lens.Eq
 
 object GenomicInterval {
 
-  class GenomicIntervalOrdering[A <: GenomicInterval[_]](implicit iv : IntervalType[A, Int]) extends Ordering[A] {
+  class GenomicIntervalOrdering[A <: GenomicInterval[_]](implicit iv : IntervalType[A]) extends Ordering[A] {
     def compare(x: A, y: A) = {
       var diff = x.chr.compare(y.chr)
       if(diff == 0)
@@ -34,15 +34,14 @@ trait InChromosome {
  * Common trait for representing intervals in genome sequences with chr and strand information
  */
 trait GenomicInterval[Repr <: GenomicInterval[Repr]] extends InChromosome with Eq { this : Repr =>
-  protected def intervalType : IntervalType[Repr, Int]
+  protected def intervalType : IntervalType[Repr]
 
   val start : Int
   val end : Int
-
   val strand : Strand
 
   override def toString = "%d:%d".format(intervalType.start(this), intervalType.end(this))
-  def length : Int = intervalType.ord.diff(intervalType.end(this), intervalType.start(this))
+  def length : Int = intervalType.end(this) - intervalType.start(this)
 
   def inSameChr[A <: InChromosome](other: A): Boolean = this.chr == other.chr
 
@@ -63,11 +62,11 @@ trait GenomicInterval[Repr <: GenomicInterval[Repr]] extends InChromosome with E
     case Reverse => new GLocus(chr, intervalType.start(this), strand)
   }
 
-  def intersectWith[A <: GenomicInterval[_]](other: A)(implicit iv:IntervalType[A, Int]): Boolean = {
+  def intersectWith[A <: GenomicInterval[_]](other: A)(implicit iv:IntervalType[A]): Boolean = {
     checkChr(other, intervalType.intersect(this, other), false)
   }
 
-  def contains[A <: GenomicInterval[_]](other: A)(implicit iv:IntervalType[A, Int]): Boolean = {
+  def contains[A <: GenomicInterval[_]](other: A)(implicit iv:IntervalType[A]): Boolean = {
     checkChr(other, intervalType.contain(this, other), false)
   }
 
@@ -75,15 +74,17 @@ trait GenomicInterval[Repr <: GenomicInterval[Repr]] extends InChromosome with E
     checkChr(pos, intervalType.containPoint(this, pos.start), false)
   }
 
-  def intersection[A <: GenomicInterval[_]](other: A)(implicit iv:IntervalType[A, Int]): Option[Repr] = {
-    checkChr(other, intervalType.intersection(this, other), None)
+  def intersection[A <: GenomicInterval[_]](other: A)(implicit iv:IntervalType[A]): Option[GInterval] = {
+    checkChr(other, intervalType.intersection(this, other) map { newGInterval(_) }, None)
   }
+
+  def newGInterval(newRange:Interval) : GInterval = GInterval(chr, newRange.start, newRange.end, strand)
 
 }
 
 object GInterval {
 
-  abstract class GIntervalTypeBase[A <: GInterval] extends IntervalType[A, Int] {
+  abstract class GIntervalTypeBase[A <: GInterval] extends IntervalType[A] {
     /**
      * Ordering function of type V values
      * @return

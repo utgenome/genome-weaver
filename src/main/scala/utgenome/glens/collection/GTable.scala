@@ -21,7 +21,7 @@ object GTable {
     t
   }
 
-  def apply[A <: GenomicInterval[_]](input:Seq[A])(implicit iv:IntervalType[A, Int]) : GTable[A] = {
+  def apply[A <: GenomicInterval[_]](input:Seq[A])(implicit iv:IntervalType[A]) : GTable[A] = {
     val t = new GTable[A]
     input foreach { t += _ }
     t
@@ -34,7 +34,7 @@ object GTable {
  *
  * @author leo
  */
-class GTable[A <: GenomicInterval[_]](implicit iv:IntervalType[A, Int]) extends Traversable[A] {
+class GTable[A <: GenomicInterval[_]](implicit iv:IntervalType[A]) extends Traversable[A] {
   
   private val table = mutable.Map[String, PrioritySearchTree[A]]()
 
@@ -59,13 +59,13 @@ class GTable[A <: GenomicInterval[_]](implicit iv:IntervalType[A, Int]) extends 
    * @param range
    * @return
    */
-  def intersectWith[B <: GenomicInterval[_]](range:B)(implicit iv2:IntervalType[B, Int]) : TraversableOnce[A] = {
+  def intersectWith[B <: GenomicInterval[_]](range:B)(implicit iv2:IntervalType[B]) : TraversableOnce[A] = {
     table.get(range.chr) map { p =>
       p.intersectWith(range)(iv2).filter { _.strand == range.strand  }
     } getOrElse Iterable.empty[A]
   }
 
-  def hasOverlap[B <: GenomicInterval[_]](range:B)(implicit iv2:IntervalType[B, Int]) : Boolean = {
+  def hasOverlap[B <: GenomicInterval[_]](range:B)(implicit iv2:IntervalType[B]) : Boolean = {
     !intersectWith(range).isEmpty
   }
 
