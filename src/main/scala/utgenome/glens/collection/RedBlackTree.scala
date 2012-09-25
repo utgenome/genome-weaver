@@ -58,26 +58,25 @@ abstract class RedBlackTree[A, B] extends Logger {
    */
   protected def isSmaller(a: A, b: A): Boolean
 
-  /**
-   * Update a tree with a given key and value. This method is used for
-   * adding a new value to node t without changing the tree structure.
-   * @param t
-   * @param key
-   * @param value
-   * @return
-   */
-  protected def updateTree(t: Tree[A, B], key: A, value: B): Tree[A, B]
+  //protected def updateTree(t: Tree[A, B], key: A, value: B): Tree[A, B]
 
   /**
-   * Create a new key from the current key and its left/right children. This method returns the curent key in default
+   * Create a new key by merging two keys
    * @param key current key
-   * @param lkey
-   * @param rkey
+   * @param other the other key to merge
+   * @return new key
+   */
+  protected def mergeKeys(key: A, other: A): A = key
+  protected def mergeKeys(key:A, other:Option[A]) : A = other.map { mergeKeys(key, _) } getOrElse key
+  protected def mergeKeys(key: A, lkey: Option[A], rkey: Option[A]): A =  mergeKeys(mergeKeys(key, lkey), rkey)
+
+  /**
+   * Update the node value. This method is used for updating the contents of tree nodes without changing the tree structure.
+   * @param current
+   * @param newValue
    * @return
    */
-  protected def newKey(key: A, lkey: Option[A], rkey: Option[A]): A = key
-
-  protected def newValue(key: A, value: B): B = value
+  protected def updateValue(current:B, newValue:B) : B
 
   def mkTree(isBlack: Boolean, key: A, h: B, l: Tree[A, B], r: Tree[A, B]): Tree[A, B] = {
     if (isBlack)
@@ -100,7 +99,7 @@ abstract class RedBlackTree[A, B] extends Logger {
     def right = Empty
     def key = null.asInstanceOf[A]
     def update(k: A, v: B) = blacken(insert(k, v))
-    def insert(k: A, v: B) = RedTree(k, newValue(k, v), Empty, Empty)
+    def insert(k: A, v: B) = RedTree(k, v, Empty, Empty)
     def lookup(e: A): Tree[A, B] = this
     def foreach[C](f: Tree[A, B] => C): Unit = {}
   }
@@ -117,23 +116,23 @@ abstract class RedBlackTree[A, B] extends Logger {
       else if (isSmaller(key, k))
         balanceRight(isBlack, key, value, left, right.insert(k, v))
       else
-        updateTree(this, k, v) // k.x == this.key.x
+        mkTree(isBlack, mergeKeys(key, k), updateValue(this.value, v), left, right) // k.x == this.key.x
     }
     private def balanceLeft(isBlack: Boolean, z: A, zv: B, l: Tree[A, B], r: Tree[A, B]): Tree[A, B] = l match {
       case RedTree(y, yv, RedTree(x, xv, a, b), c) =>
-        RedTree(newKey(y, Some(x), Some(z)), yv, BlackTree(x, xv, a, b), BlackTree(z, zv, c, r))
+        RedTree(mergeKeys(y, Some(x), Some(z)), yv, BlackTree(x, xv, a, b), BlackTree(z, zv, c, r))
       case RedTree(x, xv, a, RedTree(y, yv, b, c)) =>
-        RedTree(newKey(y, Some(x), Some(z)), yv, BlackTree(x, xv, a, b), BlackTree(z, zv, c, r))
+        RedTree(mergeKeys(y, Some(x), Some(z)), yv, BlackTree(x, xv, a, b), BlackTree(z, zv, c, r))
       case _ =>
-        mkTree(isBlack, newKey(z, l.getKey, r.getKey), zv, l, r)
+        mkTree(isBlack, mergeKeys(z, l.getKey, r.getKey), zv, l, r)
     }
     private def balanceRight(isBlack: Boolean, x: A, xv: B, l: Tree[A, B], r: Tree[A, B]): Tree[A, B] = r match {
       case RedTree(z, zv, RedTree(y, yv, b, c), d) =>
-        RedTree(newKey(y, Some(x), Some(z)), yv, BlackTree(x, xv, l, b), BlackTree(z, zv, c, d))
+        RedTree(mergeKeys(y, Some(x), Some(z)), yv, BlackTree(x, xv, l, b), BlackTree(z, zv, c, d))
       case RedTree(y, yv, b, RedTree(z, zv, c, d)) =>
-        RedTree(newKey(y, Some(x), Some(z)), yv, BlackTree(x, xv, l, b), BlackTree(z, zv, c, d))
+        RedTree(mergeKeys(y, Some(x), Some(z)), yv, BlackTree(x, xv, l, b), BlackTree(z, zv, c, d))
       case _ =>
-        mkTree(isBlack, newKey(x, l.getKey, r.getKey), xv, l, r)
+        mkTree(isBlack, mergeKeys(x, l.getKey, r.getKey), xv, l, r)
     }
     def lookup(e: A): Tree[A, B] = {
       if (isSmaller(e, key))
