@@ -1,6 +1,6 @@
 package utgenome.glens.collection
 
-import xerial.core.lens.Eq
+import xerial.lens.Eq
 
 
 /*

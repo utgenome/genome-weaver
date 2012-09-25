@@ -8,7 +8,7 @@
 package utgenome.glens.collection
 
 import utgenome.glens.{Reverse, Forward, Strand}
-import xerial.core.lens.Eq
+import xerial.lens.Eq
 
 object GenomicInterval {
 

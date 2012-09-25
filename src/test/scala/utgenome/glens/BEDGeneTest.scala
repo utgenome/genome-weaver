@@ -17,7 +17,8 @@
 package utgenome.glens
 
 import xerial.core.XerialSpec
-import xerial.core.lens.ObjectSchema
+import xerial.lens.ObjectSchema
+
 
 /**
  * @author leo
