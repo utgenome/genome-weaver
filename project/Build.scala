@@ -21,7 +21,7 @@ import Keys._
 
 object GlensBuild extends Build {
 
-  val SCALA_VERSION = "2.10.1-RC2"
+  val SCALA_VERSION = "2.10.0"
 
   def releaseResolver(v:String) : Resolver = {
     val profile = System.getProperty("profile", "default")

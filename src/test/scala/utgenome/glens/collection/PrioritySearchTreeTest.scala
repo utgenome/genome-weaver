@@ -7,13 +7,13 @@ package utgenome.glens.collection
 //
 //--------------------------------------
 
-import xerial.core.XerialSpec
 import util.Random
+import utgenome.glens.GLensSpec
 
 /**
  * @author leo
  */
-class PrioritySearchTreeTest extends XerialSpec {
+class PrioritySearchTreeTest extends GLensSpec {
 
 
   def overlapQuery(p: PrioritySearchTree[Interval], q: Interval) {

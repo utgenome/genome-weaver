@@ -8,12 +8,12 @@
 package utgenome.glens
 
 import util.Random
-import xerial.core.XerialSpec
+
 
 /**
  * @author leo
  */
-class ACGTNSeqTest extends XerialSpec {
+class ACGTNSeqTest extends GLensSpec {
 
   def compare(orig: String, seq: ACGTNSeq) {
     orig.length should be(seq.length)

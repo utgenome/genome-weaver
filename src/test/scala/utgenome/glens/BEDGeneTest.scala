@@ -16,14 +16,13 @@
 
 package utgenome.glens
 
-import xerial.core.XerialSpec
 import xerial.lens.ObjectSchema
 
 
 /**
  * @author leo
  */
-class BEDGeneTest extends XerialSpec {
+class BEDGeneTest extends GLensSpec {
 
     "BEDGene" should {
         "be desribed as as silk" in {

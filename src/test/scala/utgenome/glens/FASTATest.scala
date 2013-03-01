@@ -11,7 +11,6 @@ package utgenome.glens
 import java.io.{BufferedInputStream, StringReader, PrintWriter}
 import util.Random
 import org.scalatest.Tag
-import xerial.core.XerialSpec
 import xerial.core.io.{TextDataProducer, Resource}
 
 
@@ -22,7 +21,7 @@ object ParserTest2 extends Tag("parser2")
 /**
  * @author leo
  */
-class FASTATest extends XerialSpec {
+class FASTATest extends GLensSpec {
 
   "FASTA" should {
     "extract sequence name" in {

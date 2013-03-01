@@ -18,8 +18,7 @@ package utgenome.glens.collection
 
 
 import util.Random
-import xerial.core.XerialSpec
-import utgenome.glens.{Strand, Reverse, Forward}
+import utgenome.glens.{GLensSpec, Strand, Reverse, Forward}
 import utgenome.glens.collection.GInterval.GIntervalTypeBase
 
 //--------------------------------------
@@ -32,7 +31,7 @@ import utgenome.glens.collection.GInterval.GIntervalTypeBase
 /**
  * @author leo
  */
-class GenomeRangeTest extends XerialSpec {
+class GenomeRangeTest extends GLensSpec {
 
 
   "interval" should {

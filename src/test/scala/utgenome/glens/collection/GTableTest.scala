@@ -7,12 +7,12 @@
 
 package utgenome.glens.collection
 
-import xerial.core.XerialSpec
+import utgenome.glens.GLensSpec
 
 /**
  * @author leo
  */
-class GTableTest extends XerialSpec {
+class GTableTest extends GLensSpec {
   "GTable" should {
 
     trait Sample {

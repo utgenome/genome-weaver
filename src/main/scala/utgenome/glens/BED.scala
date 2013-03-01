@@ -191,7 +191,7 @@ object BEDGene extends Logger {
         BEDGene(line)
       }
       catch {
-        case e => {
+        case e : Exception => {
           error("error occurred at line %d: %s", lineNum+1, line)
           throw e
         }

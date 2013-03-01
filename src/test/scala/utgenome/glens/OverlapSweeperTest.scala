@@ -9,12 +9,11 @@ package utgenome.glens
 
 import collection.Interval
 import collection.Interval.IntervalOrdering
-import xerial.core.XerialSpec
 
 /**
  * @author leo
  */
-class OverlapSweeperTest extends XerialSpec {
+class OverlapSweeperTest extends GLensSpec {
 
   "OverlapSweeper" should {
     "report all overlapped intervals" in {

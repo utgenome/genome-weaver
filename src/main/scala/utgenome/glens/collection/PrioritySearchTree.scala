@@ -202,7 +202,7 @@ abstract class GenPrioritySearchTree[A, Repr](tree: Tree[Interval, Holder[A]], o
     b.result
   }
 
-  override def first = {
+  def first = {
     def findFirst(t: Tree[K, Holder[A]]): A = {
       if (t.isEmpty)
         null.asInstanceOf[A]
@@ -245,9 +245,7 @@ abstract class GenPrioritySearchTree[A, Repr](tree: Tree[Interval, Holder[A]], o
     }
 
     def find(t: Tree[K, Holder[A]]) {
-      if (t.isEmpty)
-        Iterator.empty
-      else {
+      if (!t.isEmpty) {
         (from, until) match {
           case (None, None) => b ++= t.map(takeValue)
           case (Some(s), _) if t.key.start < s => find(t.right)

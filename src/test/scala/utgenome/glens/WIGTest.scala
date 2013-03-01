@@ -1,6 +1,5 @@
 package utgenome.glens
 
-import xerial.core.XerialSpec
 
 //--------------------------------------
 //
@@ -12,7 +11,7 @@ import xerial.core.XerialSpec
 /**
  * @author leo
  */
-class WIGTest extends XerialSpec {
+class WIGTest extends GLensSpec {
 
   import WIGParser._
 
