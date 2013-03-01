@@ -18,11 +18,10 @@ package utgenome.glens
 
 import sbt._
 import Keys._
-import com.jsuereth.pgp.sbtplugin.PgpPlugin._
 
 object GlensBuild extends Build {
 
-  val SCALA_VERSION = "2.9.2"
+  val SCALA_VERSION = "2.10.1-RC2"
 
   def releaseResolver(v:String) : Resolver = {
     val profile = System.getProperty("profile", "default")
@@ -49,9 +48,6 @@ object GlensBuild extends Build {
     publishMavenStyle := true,
     publishArtifact in Test := false,
     publishTo <<= version { (v) => Some(releaseResolver(v)) },
-//    publishLocalConfiguration <<= (packagedArtifacts, deliverLocal, checksums, ivyLoggingLevel) map {
-//      (arts, _, cs, level) => new PublishConfiguration(None, "localM2", arts, cs, level)
-//    },
     pomIncludeRepository := { _ => false },
     parallelExecution := true,
     crossPaths := false,
@@ -79,17 +75,19 @@ object GlensBuild extends Build {
             <url>http://xerial.org/leo</url>
           </developer>
         </developers>
-    },
-    useGpg := true,
-    useGpgAgent := false
+    }
   )
 
 
   object Dependencies {
     val testLib = Seq(
-      "org.scalatest" %% "scalatest" % "2.0.M3" % "test"
+      "org.scalatest" %% "scalatest" % "2.0.M5b" % "test"
     )
-    val apacheCommons = "org.apache.commons" % "commons-compress" % "1.4.1"
+    val xerialLib = Seq(
+      "org.xerial" % "xerial-core" % "3.1",
+      "org.xerial" % "xerial-lens" % "3.1"
+    )
+    val apacheCommons = Seq("org.apache.commons" % "commons-compress" % "1.4.1")
   }
 
   import Dependencies._
@@ -100,13 +98,8 @@ object GlensBuild extends Build {
   lazy val glens = Project(
     id = "glens",
     base = file("."),
-    settings = buildSettings ++ Seq(libraryDependencies ++= testLib :+ apacheCommons)
-  ) aggregate(xerialCore, xerialLens, xerialCui) dependsOn(xerialCore % dependentScope, xerialLens, xerialCui)
-
-  //lazy val xerial = RootProject(file("xerial"))
-  lazy val xerialCore = ProjectRef(file("xerial"), "xerial-core") 
-  lazy val xerialLens = ProjectRef(file("xerial"), "xerial-lens")
-  lazy val xerialCui = ProjectRef(file("xerial"), "xerial-cui")
+    settings = buildSettings ++ Seq(libraryDependencies ++= testLib ++ apacheCommons ++ xerialLib)
+  )
 
 }
 
