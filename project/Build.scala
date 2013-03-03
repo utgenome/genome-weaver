@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package utgenome.glens
+package utgenome.weaver
 
 import sbt._
 import Keys._
 
-object GlensBuild extends Build {
+object GenomeWeaverBuild extends Build {
 
   val SCALA_VERSION = "2.10.0"
 
@@ -95,8 +95,8 @@ object GlensBuild extends Build {
   private val dependentScope = "test->test;compile->compile"
 
 
-  lazy val glens = Project(
-    id = "glens",
+  lazy val weaverCore = Project(
+    id = "weaver-core",
     base = file("."),
     settings = buildSettings ++ Seq(libraryDependencies ++= testLib ++ apacheCommons ++ xerialLib)
   )
