@@ -18,7 +18,7 @@ package utgenome.weaver.core
 
 import java.io.{BufferedReader, Reader}
 import xerial.core.io.text.parser.{ParseError, SyntaxError}
-
+import scala.language.reflectiveCalls
 
 //--------------------------------------
 //

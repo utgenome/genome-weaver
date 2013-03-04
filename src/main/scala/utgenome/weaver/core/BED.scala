@@ -30,10 +30,6 @@ import xerial.core.log.Logger
 //--------------------------------------
 
 object BED {
-  implicit object BEDIntervalType extends IntervalType[BED] {
-    def start(a: BED) = a.start
-    def end(a: BED) = a.end
-  }
 
   def parse(line: String): BED = {
     val c = line.split("\\s+")
@@ -51,9 +47,9 @@ object BED {
  * @param start
  * @param end
  */
-class BED(val chr: String, val start: Int, val end: Int, val strand: Strand)
-  extends GenomicInterval[BED] {
-  protected def intervalType = BED.BEDIntervalType
+class BED(chr: String, start: Int, end: Int, strand: Strand)
+  extends GInterval(chr, start, end, strand) {
+
 }
 
 /**
@@ -63,10 +59,10 @@ class BED(val chr: String, val start: Int, val end: Int, val strand: Strand)
  */
 class BEDGene
   (
-  val chr: String,
-  val start: Int,
-  val end: Int,
-  val strand: Strand,
+  chr: String,
+  start: Int,
+  end: Int,
+  strand: Strand,
   val name: String,
   val score: Int,
   val thickStart: Int,
@@ -76,7 +72,7 @@ class BEDGene
   val blockSizes: Array[Int],
   val blockStarts: Array[Int]
 )
-  extends GenomicInterval[BEDGene] with Eq {
+  extends GInterval(chr, start, end, strand) with Eq {
 
   override def toString = "%s %s[%s,%s]".format(name, chr, start, end)
 
@@ -141,17 +137,11 @@ class BEDGene
     }
   }
 
-  protected def intervalType = BEDGene.BEDGeneType
 }
 
 
 
 object BEDGene extends Logger {
-
-  implicit object BEDGeneType extends IntervalType[BEDGene] {
-    def start(a: BEDGene) = a.start
-    def end(a: BEDGene) = a.end
-  }
 
   def apply(line: String): BEDGene = {
     def parseBlock(blocks: String) = {

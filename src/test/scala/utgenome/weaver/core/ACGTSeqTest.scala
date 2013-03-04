@@ -55,7 +55,7 @@ class ACGTSeqTest extends GLensSpec {
         val s = randomSeq(len)
         val s_rc = {
           val sb = new StringBuilder
-          for (i <- 0 until s.size reverse) {
+          for (i <- (0 until s.size).reverse) {
             sb += DNA(s(i)).complement.toChar
           }
           sb.result

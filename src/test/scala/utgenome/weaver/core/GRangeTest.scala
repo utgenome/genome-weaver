@@ -17,20 +17,17 @@
 package utgenome.weaver.core
 
 import util.Random
-import utgenome.weaver.core._
-import GInterval.GIntervalTypeBase
 
 //--------------------------------------
 //
-// GenomeRangeTest.scala
-// Since: 2012/04/02 16:05
+// GRangeTest.scalaince: 2012/04/02 16:05
 //
 //--------------------------------------
 
 /**
  * @author leo
  */
-class GenomeRangeTest extends GLensSpec {
+class GRangeTest extends GLensSpec {
 
 
   "interval" should {
@@ -59,7 +56,19 @@ class GenomeRangeTest extends GLensSpec {
 
   }
 
+  def getStart[A <: GInterval](g:A)(implicit iv:GIntervalType[A]) : Int = {
+    iv.start(g)
+  }
+
+
   "GInterval" should {
+
+    "has GInteravalType" in {
+      val g = new GInterval("chr1", 3, 10, Forward)
+      getStart(g)
+
+    }
+
     "satisfy equality" in {
       val g1 = new GInterval("chr1", 34, 140, Forward)
       val g2 = new GInterval("chr1", 34, 140, Forward)
@@ -72,15 +81,33 @@ class GenomeRangeTest extends GLensSpec {
       g3.hashCode must not be (g1.hashCode)
     }
 
+
     "allow type extention" in {
 
       class MyGInterval(chr:String, start:Int, end:Int, strand:Strand) extends GInterval(chr, start, end, strand)
-      implicit object MyGIntevalType extends GIntervalTypeBase[MyGInterval] {
-        def newInterval(base: MyGInterval, newStart: Int, newEnd: Int) = new MyGInterval(base.chr, newStart, newEnd, base.strand)
-      }
 
       var p = PrioritySearchTree.empty[MyGInterval]
-      p += new MyGInterval("chr1", 1, 200, Forward)
+      val g = new MyGInterval("chr1", 1, 200, Forward)
+      p += g
+
+
+      getStart(g) should be (1)
+    }
+
+    "comparable with other GIntervalType" in {
+      case class MyInterval(c:String, s:Int, e:Int, str:Strand)
+      implicit object MyGIntervalType extends GIntervalType[MyInterval] {
+        def start(a: MyInterval): Int = a.s
+        def chr(a: MyInterval): String = a.c
+        def strand(a: MyInterval): Strand = a.str
+        def end(a: MyInterval): Int = a.e
+      }
+
+      val g = new GInterval("chr1", 100, 200, Forward)
+      val m = new MyInterval("chr1", 150, 250, Forward)
+      g.inSameChr(m) should be (true)
+      g.intersectWith(m) should be (true)
+      g.intersection(m) should be (Some(new GInterval("chr1", 150, 200, Forward)))
 
     }
 

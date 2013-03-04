@@ -13,14 +13,14 @@ import scala.collection.mutable
 
 object GTable {
   def loadBED(bedFile:String) : GTable[BEDGene] = {
-    val t = new GTable[BEDGene]
+    val t = new GTable[BEDGene]()
     for(bed <- BEDGene.parse(new File(bedFile))) {
       t += bed
     }
     t
   }
 
-  def apply[A <: GenomicInterval[_]](input:Seq[A])(implicit iv:IntervalType[A]) : GTable[A] = {
+  def apply[A](input:Seq[A])(implicit iv:GIntervalType[A]) : GTable[A] = {
     val t = new GTable[A]
     input foreach { t += _ }
     t
@@ -33,7 +33,7 @@ object GTable {
  *
  * @author leo
  */
-class GTable[A <: GenomicInterval[_]](implicit iv:IntervalType[A]) extends Traversable[A] {
+class GTable[A]()(implicit iv:GIntervalType[A]) extends Traversable[A] {
   
   private val table = mutable.Map[String, PrioritySearchTree[A]]()
 
@@ -42,11 +42,11 @@ class GTable[A <: GenomicInterval[_]](implicit iv:IntervalType[A]) extends Trave
 
   def apply(chr:String) = table.getOrElseUpdate(chr, PrioritySearchTree.empty[A](iv))
 
-  override def size : Int = table.values map {_.size} sum
+  override def size : Int = table.values.map{_.size}.sum
 
   def +=(e:A) : this.type = {
-    val p = table.getOrElseUpdate(e.chr, PrioritySearchTree.empty[A](iv))
-    table.update(e.chr, p + e)
+    val p = table.getOrElseUpdate(iv.chr(e), PrioritySearchTree.empty[A](iv))
+    table.update(iv.chr(e), p + e)
     this
   }
 
@@ -58,13 +58,13 @@ class GTable[A <: GenomicInterval[_]](implicit iv:IntervalType[A]) extends Trave
    * @param range
    * @return
    */
-  def intersectWith[B <: GenomicInterval[_]](range:B)(implicit iv2:IntervalType[B]) : TraversableOnce[A] = {
-    table.get(range.chr) map { p =>
-      p.intersectWith(range)(iv2).filter { _.strand == range.strand  }
+  def intersectWith[B](range:B)(implicit iv2:GIntervalType[B]) : TraversableOnce[A] = {
+    table.get(iv2.chr(range)) map { p =>
+      p.intersectWith(range)(iv2).filter { a => iv.strand(a) == iv2.strand(range)  }
     } getOrElse Iterable.empty[A]
   }
 
-  def hasOverlap[B <: GenomicInterval[_]](range:B)(implicit iv2:IntervalType[B]) : Boolean = {
+  def hasOverlap[B](range:B)(implicit iv2:GIntervalType[B]) : Boolean = {
     !intersectWith(range).isEmpty
   }
 
