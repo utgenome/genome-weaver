@@ -11,7 +11,10 @@ import xerial.lens.Eq
 import xerial.core.log.Logger
 import reflect.ClassTag
 
-
+/**
+ * A type class for mapping A to GLocus
+ * @tparam A
+ */
 trait GLocusType[A] {
   def start(a:A) : Int
   def chr(a:A): String
@@ -44,8 +47,8 @@ trait GenomicLocus[A] extends Eq { this : A =>
     case Reverse => newRange(ev.start(this) - length, ev.start(this))
   }
 
-  def toRange: GInterval = new GInterval(ev.chr(this), ev.start(this), ev.start(this), ev.strand(this))
-  def newRange(newStart: Int, newEnd: Int): GInterval = new GInterval(ev.chr(this), newStart, newEnd, ev.strand(this))
+  def toRange: GInterval = GInterval(ev.chr(this), ev.start(this), ev.start(this), ev.strand(this))
+  def newRange(newStart: Int, newEnd: Int): GInterval = GInterval(ev.chr(this), newStart, newEnd, ev.strand(this))
 
   def -[B](other:B)(implicit t:GLocusType[B]) :Int = {
     ev.start(this) - t.start(other)
@@ -87,6 +90,9 @@ object GLocus {
       diff
     }
   }
+
+  def apply(chr:String, start:Int, strand:Strand)= new GLocus(chr, start, strand)
+  def apply(chr:String, start:Int)= new GLocus(chr, start, Forward)
 }
 
 
@@ -106,7 +112,10 @@ class GLocus(val chr: String, val start: Int, val strand: Strand)
 
 }
 
-
+/**
+ * Type class for mapping A to GInterval
+ * @tparam A  actual class
+ */
 trait GIntervalType[A] extends IntervalType[A] with GLocusType[A] {
   def end(a:A) : Int
 }
@@ -120,12 +129,16 @@ object GenomicInterval {
  */
 trait GenomicInterval[A] extends Eq { this: A =>
 
-  @inline protected def iv : GIntervalType[A]
+  /**
+   * Provide an evidence that A is a GIntervalType
+   * @return
+   */
+  @inline protected def ev : GIntervalType[A]
 
-  override def toString = "%d:%d".format(iv.start(this), iv.end(this))
-  def length : Int = iv.end(this) - iv.start(this)
+  override def toString = "%d:%d".format(ev.start(this), ev.end(this))
+  def length : Int = ev.end(this) - ev.start(this)
 
-  def inSameChr[B](other: B)(implicit t : GIntervalType[B]): Boolean = iv.chr(this) == t.chr(other)
+  def inSameChr[B](other: B)(implicit t : GIntervalType[B]): Boolean = ev.chr(this) == t.chr(other)
 
   def checkChr[B, Ret](other: B, success: => Ret, fail: => Ret)(implicit t : GIntervalType[B]): Ret = {
     if (inSameChr(other))
@@ -134,30 +147,30 @@ trait GenomicInterval[A] extends Eq { this: A =>
       fail
   }
 
-  def fivePrimeEnd: GLocus = iv.strand(this) match {
-    case Forward => new GLocus(iv.chr(this), iv.start(this), iv.strand(this))
-    case Reverse => new GLocus(iv.chr(this), iv.end(this), iv.strand(this))
+  def fivePrimeEnd: GLocus = ev.strand(this) match {
+    case Forward => new GLocus(ev.chr(this), ev.start(this), ev.strand(this))
+    case Reverse => new GLocus(ev.chr(this), ev.end(this), ev.strand(this))
   }
 
-  def threePrimeEnd: GLocus = iv.strand(this) match {
-    case Forward => new GLocus(iv.chr(this), iv.end(this), iv.strand(this))
-    case Reverse => new GLocus(iv.chr(this), iv.start(this), iv.strand(this))
+  def threePrimeEnd: GLocus = ev.strand(this) match {
+    case Forward => new GLocus(ev.chr(this), ev.end(this), ev.strand(this))
+    case Reverse => new GLocus(ev.chr(this), ev.start(this), ev.strand(this))
   }
 
   def intersectWith[B](other: B)(implicit t:GIntervalType[B]): Boolean = {
-    checkChr(other, iv.intersect(this, other)(t), false)
+    checkChr(other, ev.intersect(this, other)(t), false)
   }
 
   def contains[B](other: B)(implicit t:GIntervalType[B]): Boolean = {
-    checkChr(other, iv.contain(this, other)(t), false)
+    checkChr(other, ev.contain(this, other)(t), false)
   }
 
   def containsPoint(pos:GLocus) : Boolean = {
-    checkChr(pos, iv.containPoint(this, pos.start), false)
+    checkChr(pos, ev.containPoint(this, pos.start), false)
   }
 
   def intersection[B](other: B)(implicit t:GIntervalType[B]): Option[GInterval] = {
-    checkChr(other, iv.intersection(this, other)(t) map { g => new GInterval(iv.chr(this), g.start, g.end, iv.strand(this)) }, None)
+    checkChr(other, ev.intersection(this, other)(t) map { g => GInterval(ev.chr(this), g.start, g.end, ev.strand(this)) }, None)
   }
 
 }
@@ -217,7 +230,7 @@ class GInterval(val chr: String, val start: Int, val end: Int, val strand: Stran
   extends GenomicInterval[GInterval]  {
   override def toString = "%s:[%d, %d):%s".format(chr, start, end, strand)
 
-  @inline protected def iv = GInterval.createTypeClass[GInterval]
+  @inline protected def ev = GInterval.createTypeClass[GInterval]
 }
 
 

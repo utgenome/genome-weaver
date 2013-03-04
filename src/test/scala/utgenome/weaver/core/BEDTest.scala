@@ -22,7 +22,7 @@ import xerial.lens.ObjectSchema
 /**
  * @author leo
  */
-class BEDGeneTest extends GLensSpec {
+class BEDTest extends GLensSpec {
 
     "BEDGene" should {
         "be desribed as as silk" in {

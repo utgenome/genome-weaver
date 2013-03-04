@@ -104,9 +104,9 @@ class PrioritySearchTreeTest extends GLensSpec {
 
     "insert points as Interval" in {
       val b = PrioritySearchTree.newBuilder[GLocus]
-      val g1 = new GLocus("chr1", 10, Forward)
-      val g2 = new GLocus("chr1", 15, Forward)
-      val g3 = new GLocus("chr1", 20, Forward)
+      val g1 = GLocus("chr1", 10, Forward)
+      val g2 = GLocus("chr1", 15, Forward)
+      val g3 = GLocus("chr1", 20, Forward)
       b ++= Seq(g1, g2, g3)
       val p = b.result()
 
