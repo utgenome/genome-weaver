@@ -18,6 +18,7 @@ package utgenome.weaver
 
 import sbt._
 import Keys._
+import xerial.sbt.Pack._
 
 object GenomeWeaverBuild extends Build {
 
@@ -40,7 +41,7 @@ object GenomeWeaverBuild extends Build {
   }
 
   lazy val buildSettings = Defaults.defaultSettings ++ Seq[Setting[_]](
-    organization := "org.utgenome",
+    organization := "org.utgenome.weaver",
     organizationName := "University of Tokyo",
     organizationHomepage := Some(new URL("http://utgenome.org/")),
     description := "Scala library for reading and writing genomic data",
@@ -60,9 +61,9 @@ object GenomeWeaverBuild extends Build {
         </license>
       </licenses>
         <scm>
-          <connection>scm:git:github.com/xerial/glens.git</connection>
-          <developerConnection>scm:git:git@github.com:xerial/glens.git</developerConnection>
-	  <url>github.com/xerial/glens.git</url>
+          <connection>scm:git:github.com/utgenome/glens.git</connection>
+          <developerConnection>scm:git:git@github.com:utgenome/glens.git</developerConnection>
+          <url>github.com/utgenome/glens.git</url>
         </scm>
         <properties>
           <scala.version>{SCALA_VERSION}</scala.version>
@@ -95,10 +96,14 @@ object GenomeWeaverBuild extends Build {
   private val dependentScope = "test->test;compile->compile"
 
 
-  lazy val weaverCore = Project(
-    id = "weaver-core",
+  lazy val gwCore = Project(
+    id = "gw-core",
     base = file("."),
-    settings = buildSettings ++ Seq(libraryDependencies ++= testLib ++ apacheCommons ++ xerialLib)
+    settings = buildSettings ++ packSettings ++
+      Seq(
+        packMain := Map("gw-core" -> "utgenome.weaver.core.Main"),
+        libraryDependencies ++= testLib ++ apacheCommons ++ xerialLib
+      )
   )
 
 }
