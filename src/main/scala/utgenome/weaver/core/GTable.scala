@@ -42,7 +42,7 @@ class GTable[A]()(implicit iv:GIntervalType[A]) extends Traversable[A] {
 
   def apply(chr:String) = table.getOrElseUpdate(chr, PrioritySearchTree.empty[A](iv))
 
-  override def size : Int = table.values map {_.size} sum
+  override def size : Int = table.values.map{_.size}.sum
 
   def +=(e:A) : this.type = {
     val p = table.getOrElseUpdate(iv.chr(e), PrioritySearchTree.empty[A](iv))

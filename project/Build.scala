@@ -52,7 +52,7 @@ object GenomeWeaverBuild extends Build {
     pomIncludeRepository := { _ => false },
     parallelExecution := true,
     crossPaths := false,
-    scalacOptions ++= Seq("-encoding", "UTF-8", "-deprecation", "-unchecked"),
+    scalacOptions ++= Seq("-encoding", "UTF-8", "-deprecation", "-unchecked", "-feature"),
     pomExtra := {
       <licenses>
         <license>

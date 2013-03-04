@@ -143,14 +143,6 @@ class BEDGene
 
 object BEDGene extends Logger {
 
-  implicit object BEDGeneAsGInterval extends GIntervalType[BEDGene] {
-    def start(a:BEDGene) = a.start
-    def end(a:BEDGene) = a.end
-    def strand(a:BEDGene) = a.strand
-    def chr(a:BEDGene) = a.chr
-  }
-
-
   def apply(line: String): BEDGene = {
     def parseBlock(blocks: String) = {
       val c = blocks.trim.stripSuffix(",").split(",")

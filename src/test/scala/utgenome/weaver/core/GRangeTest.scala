@@ -87,7 +87,27 @@ class GRangeTest extends GLensSpec {
       class MyGInterval(chr:String, start:Int, end:Int, strand:Strand) extends GInterval(chr, start, end, strand)
 
       var p = PrioritySearchTree.empty[MyGInterval]
-      p += new MyGInterval("chr1", 1, 200, Forward)
+      val g = new MyGInterval("chr1", 1, 200, Forward)
+      p += g
+
+
+      getStart(g) should be (1)
+    }
+
+    "comparable with other GIntervalType" in {
+      case class MyInterval(c:String, s:Int, e:Int, str:Strand)
+      implicit object MyGIntervalType extends GIntervalType[MyInterval] {
+        def start(a: MyInterval): Int = a.s
+        def chr(a: MyInterval): String = a.c
+        def strand(a: MyInterval): Strand = a.str
+        def end(a: MyInterval): Int = a.e
+      }
+
+      val g = new GInterval("chr1", 100, 200, Forward)
+      val m = new MyInterval("chr1", 150, 250, Forward)
+      g.inSameChr(m) should be (true)
+      g.intersectWith(m) should be (true)
+      g.intersection(m) should be (Some(new GInterval("chr1", 150, 200, Forward)))
 
     }
 

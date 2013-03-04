@@ -8,6 +8,8 @@
 package utgenome.weaver.core
 
 import xerial.lens.Eq
+import xerial.core.log.Logger
+import reflect.ClassTag
 
 
 trait GLocusType[A] {
@@ -21,41 +23,41 @@ trait GLocusType[A] {
  */
 trait GenomicLocus[A] extends Eq { this : A =>
 
-  @inline protected def iv : GLocusType[A]
+  @inline protected def ev : GLocusType[A]
 
   /**
    *
    * @param width
    * @return
    */
-  def around(width: Int): GInterval = newRange(iv.start(this) - width, iv.start(this) + width)
-  def around(upstreamLength: Int, downstreamLength: Int) = iv.strand(this) match {
-    case Forward => newRange(iv.start(this) - upstreamLength, iv.start(this) + downstreamLength)
-    case Reverse => newRange(iv.start(this) - downstreamLength, iv.start(this) + upstreamLength)
+  def around(width: Int): GInterval = newRange(ev.start(this) - width, ev.start(this) + width)
+  def around(upstreamLength: Int, downstreamLength: Int) = ev.strand(this) match {
+    case Forward => newRange(ev.start(this) - upstreamLength, ev.start(this) + downstreamLength)
+    case Reverse => newRange(ev.start(this) - downstreamLength, ev.start(this) + upstreamLength)
   }
-  def upstream(length: Int): GInterval = iv.strand(this) match {
-    case Forward => newRange(iv.start(this) - length, iv.start(this))
-    case Reverse => newRange(iv.start(this), iv.start(this) + length)
+  def upstream(length: Int): GInterval = ev.strand(this) match {
+    case Forward => newRange(ev.start(this) - length, ev.start(this))
+    case Reverse => newRange(ev.start(this), ev.start(this) + length)
   }
-  def downstream(length: Int): GInterval = iv.strand(this) match {
-    case Forward => newRange(iv.start(this), iv.start(this) + length)
-    case Reverse => newRange(iv.start(this) - length, iv.start(this))
+  def downstream(length: Int): GInterval = ev.strand(this) match {
+    case Forward => newRange(ev.start(this), ev.start(this) + length)
+    case Reverse => newRange(ev.start(this) - length, ev.start(this))
   }
 
-  def toRange: GInterval = new GInterval(iv.chr(this), iv.start(this), iv.start(this), iv.strand(this))
-  def newRange(newStart: Int, newEnd: Int): GInterval = new GInterval(iv.chr(this), newStart, newEnd, iv.strand(this))
+  def toRange: GInterval = new GInterval(ev.chr(this), ev.start(this), ev.start(this), ev.strand(this))
+  def newRange(newStart: Int, newEnd: Int): GInterval = new GInterval(ev.chr(this), newStart, newEnd, ev.strand(this))
 
   def -[B](other:B)(implicit t:GLocusType[B]) :Int = {
-    iv.start(this) - t.start(other)
+    ev.start(this) - t.start(other)
   }
 
   def +[B](other:B)(implicit t:GLocusType[B]) :Int = {
-    iv.start(this) + t.start(other)
+    ev.start(this) + t.start(other)
   }
 
 
   def distanceTo[B](other:B)(implicit t:GLocusType[B]) :Int = {
-    t.start(other) - iv.start(this)
+    t.start(other) - ev.start(this)
   }
 }
 
@@ -98,7 +100,7 @@ class GLocus(val chr: String, val start: Int, val strand: Strand)
   extends GenomicLocus[GLocus] {
   override def toString = "%s:%d:%s".format(chr, start, strand)
 
-  protected def iv = GLocus.GLocusTypeImpl
+  protected def ev = GLocus.GLocusTypeImpl
 
   def move(newStart: Int) = new GLocus(chr, newStart, strand)
 
@@ -109,10 +111,14 @@ trait GIntervalType[A] extends IntervalType[A] with GLocusType[A] {
   def end(a:A) : Int
 }
 
+object GenomicInterval {
+
+}
+
 /**
  * Common trait for representing intervals in genome sequences with chr and strand information
  */
-trait GenomicInterval[A] extends Eq { this : A =>
+trait GenomicInterval[A] extends Eq { this: A =>
 
   @inline protected def iv : GIntervalType[A]
 
@@ -157,13 +163,32 @@ trait GenomicInterval[A] extends Eq { this : A =>
 }
 
 
-object GInterval {
+object GInterval extends Logger {
 
-  implicit object GIntervalTypeImpl extends GIntervalType[GInterval] {
-    def start(a:GInterval) : Int = a.start
-    def end(a:GInterval) : Int = a.end
-    def chr(a:GInterval): String = a.chr
-    def strand(a:GInterval): Strand = a.strand
+  implicit class WrapAsGInterval[A <: GInterval](a:A)(implicit iv:GIntervalType[A]) {
+    def chr = iv.chr(a)
+    def start = iv.start(a)
+    def end = iv.end(a)
+    def strand = iv.strand(a)
+  }
+
+
+  private[this] val ivTable = collection.mutable.Map[Class[_], GIntervalType[_]]()
+
+  /**
+   *
+   * @tparam A
+   * @return
+   */
+  implicit def createTypeClass[A <: GInterval](implicit t:ClassTag[A]) : GIntervalType[A] = {
+    ivTable.getOrElseUpdate(t.runtimeClass,
+      new GIntervalType[A] {
+        def start(a:A) : Int = a.start
+        def end(a:A) : Int = a.end
+        def chr(a:A): String = a.chr
+        def strand(a:A): Strand = a.strand
+      }
+    ).asInstanceOf[GIntervalType[A]]
   }
 
   def apply(chr: String, start: Int, end: Int, strand: Strand) = new GInterval(chr, start, end, strand)
@@ -191,8 +216,8 @@ object GInterval {
 class GInterval(val chr: String, val start: Int, val end: Int, val strand: Strand)
   extends GenomicInterval[GInterval]  {
   override def toString = "%s:[%d, %d):%s".format(chr, start, end, strand)
-  protected def iv = GInterval.GIntervalTypeImpl
 
+  @inline protected def iv = GInterval.createTypeClass[GInterval]
 }
 
 
