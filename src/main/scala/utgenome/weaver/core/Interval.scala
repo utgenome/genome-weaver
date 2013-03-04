@@ -58,6 +58,7 @@ trait Point2D[A] extends Ordering[A] {
 
 }
 
+
 /**
  * Type class representing intervals
  * @tparam A  actual class
@@ -94,6 +95,7 @@ trait IntervalType[A] extends Point2D[A] {
   def endIsSmaller[B](a: A, b: B)(implicit iv:IntervalType[B]): Boolean = end(a) < iv.end(b)
 
 }
+
 
 
 /**
