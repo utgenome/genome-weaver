@@ -47,7 +47,7 @@ object BED {
  * @param start
  * @param end
  */
-class BED(chr: String, start: Int, end: Int, strand: Strand)
+class BED(override val chr: String, override val start: Int, override val end: Int, override val strand: Strand)
   extends GInterval(chr, start, end, strand) {
 
 }
@@ -59,10 +59,10 @@ class BED(chr: String, start: Int, end: Int, strand: Strand)
  */
 class BEDGene
   (
-  chr: String,
-  start: Int,
-  end: Int,
-  strand: Strand,
+  override val chr: String,
+  override val start: Int,
+  override val end: Int,
+  override val strand: Strand,
   val name: String,
   val score: Int,
   val thickStart: Int,

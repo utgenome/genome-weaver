@@ -81,6 +81,9 @@ object GenomeWeaverBuild extends Build {
 
 
   object Dependencies {
+    val scalaLib = Seq(
+      "org.scala-lang" % "scala-reflect" % "2.10.0"
+    )
     val testLib = Seq(
       "org.scalatest" %% "scalatest" % "2.0.M5b" % "test"
     )
@@ -102,7 +105,7 @@ object GenomeWeaverBuild extends Build {
     settings = buildSettings ++ packSettings ++
       Seq(
         packMain := Map("gw-core" -> "utgenome.weaver.core.Main"),
-        libraryDependencies ++= testLib ++ apacheCommons ++ xerialLib
+        libraryDependencies ++= testLib ++ apacheCommons ++ xerialLib ++ scalaLib
       )
   )
 

@@ -67,11 +67,6 @@ trait GenomicLocus[A] extends Eq { this : A =>
 
 object GLocus {
 
-  implicit object GLocusTypeImpl extends GLocusType[GLocus] {
-    def start(a:GLocus) : Int = a.start
-    def chr(a:GLocus): String  = a.chr
-    def strand(a:GLocus): Strand = a.strand
-  }
 
   implicit object GLocusAsGInterval extends GIntervalType[GLocus] {
     def start(a:GLocus) : Int = a.start
@@ -80,6 +75,22 @@ object GLocus {
     def strand(a:GLocus): Strand = a.strand
   }
 
+  private[this] val ivTable = collection.mutable.Map[Class[_], GLocusType[_]]()
+
+  /**
+   *
+   * @tparam A
+   * @return
+   */
+  implicit def createTypeClass[A <: GLocus](implicit t:ClassTag[A]) : GLocusType[A] = {
+    ivTable.getOrElseUpdate(t.runtimeClass,
+      new GLocusType[A] {
+        def start(a:A) : Int = a.start
+        def chr(a:A): String = a.chr
+        def strand(a:A): Strand = a.strand
+      }
+    ).asInstanceOf[GLocusType[A]]
+  }
 
   implicit object GLocusOrdering extends Ordering[GLocus] {
     def compare(a: GLocus, b:GLocus) : Int = {
@@ -106,7 +117,7 @@ class GLocus(val chr: String, val start: Int, val strand: Strand)
   extends GenomicLocus[GLocus] {
   override def toString = "%s:%d:%s".format(chr, start, strand)
 
-  protected def ev = GLocus.GLocusTypeImpl
+  protected def ev = GLocus.createTypeClass[GLocus]
 
   def move(newStart: Int) = new GLocus(chr, newStart, strand)
 
