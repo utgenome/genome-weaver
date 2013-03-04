@@ -32,9 +32,9 @@ import scala.language.reflectiveCalls
 /**
  * @author leo
  */
-object FASTQRead {
+object FASTQ {
 
-  def parse(in:BufferedReader) : Either[ParseError, FASTQRead] = {
+  def parse(in:BufferedReader) : Either[ParseError, FASTQ] = {
     val name = in.readLine
     val seq = in.readLine
     in.readLine
@@ -47,11 +47,11 @@ object FASTQRead {
       Left(SyntaxError("insufficient read name length: " + name))
     }
     else
-      Right(FASTQRead(name.substring(1), seq, qual))
+      Right(FASTQ(name.substring(1), seq, qual))
   }
 }
 
-case class FASTQRead(name:String, seq:String, qual:String) {
+case class FASTQ(name:String, seq:String, qual:String) {
   def toFASTQEntry : String = {
     val newLine = "\n"
     val buf = StringBuilder.newBuilder
