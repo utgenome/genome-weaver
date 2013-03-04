@@ -9,7 +9,6 @@ package utgenome.weaver.core
 
 import xerial.lens.Eq
 import xerial.core.log.Logger
-import reflect.ClassTag
 
 /**
  * A type class for mapping A to GLocus
@@ -82,7 +81,7 @@ object GLocus {
    * @tparam A
    * @return
    */
-  implicit def createTypeClass[A <: GLocus](implicit t:ClassTag[A]) : GLocusType[A] = {
+  implicit def createTypeClass[A <: GLocus](implicit t:Manifest[A]) : GLocusType[A] = {
     ivTable.getOrElseUpdate(t.runtimeClass,
       new GLocusType[A] {
         def start(a:A) : Int = a.start
@@ -204,7 +203,7 @@ object GInterval extends Logger {
    * @tparam A
    * @return
    */
-  implicit def createTypeClass[A <: GInterval](implicit t:ClassTag[A]) : GIntervalType[A] = {
+  implicit def createTypeClass[A <: GInterval](implicit t:Manifest[A]) : GIntervalType[A] = {
     ivTable.getOrElseUpdate(t.runtimeClass,
       new GIntervalType[A] {
         def start(a:A) : Int = a.start
