@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package utgenome.glens
+package utgenome.weaver
 
 import sbt._
 import Keys._
-import com.jsuereth.pgp.sbtplugin.PgpPlugin._
+import xerial.sbt.Pack._
 
-object GlensBuild extends Build {
+object GenomeWeaverBuild extends Build {
 
-  val SCALA_VERSION = "2.9.2"
+  val SCALA_VERSION = "2.10.0"
 
   def releaseResolver(v:String) : Resolver = {
     val profile = System.getProperty("profile", "default")
@@ -41,7 +41,7 @@ object GlensBuild extends Build {
   }
 
   lazy val buildSettings = Defaults.defaultSettings ++ Seq[Setting[_]](
-    organization := "org.utgenome",
+    organization := "org.utgenome.weaver",
     organizationName := "University of Tokyo",
     organizationHomepage := Some(new URL("http://utgenome.org/")),
     description := "Scala library for reading and writing genomic data",
@@ -49,13 +49,10 @@ object GlensBuild extends Build {
     publishMavenStyle := true,
     publishArtifact in Test := false,
     publishTo <<= version { (v) => Some(releaseResolver(v)) },
-//    publishLocalConfiguration <<= (packagedArtifacts, deliverLocal, checksums, ivyLoggingLevel) map {
-//      (arts, _, cs, level) => new PublishConfiguration(None, "localM2", arts, cs, level)
-//    },
     pomIncludeRepository := { _ => false },
     parallelExecution := true,
     crossPaths := false,
-    scalacOptions ++= Seq("-encoding", "UTF-8", "-deprecation", "-unchecked"),
+    scalacOptions ++= Seq("-encoding", "UTF-8", "-deprecation", "-unchecked", "-feature"),
     pomExtra := {
       <licenses>
         <license>
@@ -64,9 +61,9 @@ object GlensBuild extends Build {
         </license>
       </licenses>
         <scm>
-          <connection>scm:git:github.com/xerial/glens.git</connection>
-          <developerConnection>scm:git:git@github.com:xerial/glens.git</developerConnection>
-	  <url>github.com/xerial/glens.git</url>
+          <connection>scm:git:github.com/utgenome/glens.git</connection>
+          <developerConnection>scm:git:git@github.com:utgenome/glens.git</developerConnection>
+          <url>github.com/utgenome/glens.git</url>
         </scm>
         <properties>
           <scala.version>{SCALA_VERSION}</scala.version>
@@ -79,17 +76,22 @@ object GlensBuild extends Build {
             <url>http://xerial.org/leo</url>
           </developer>
         </developers>
-    },
-    useGpg := true,
-    useGpgAgent := false
+    }
   )
 
 
   object Dependencies {
-    val testLib = Seq(
-      "org.scalatest" %% "scalatest" % "2.0.M3" % "test"
+    val scalaLib = Seq(
+      "org.scala-lang" % "scala-reflect" % "2.10.0"
     )
-    val apacheCommons = "org.apache.commons" % "commons-compress" % "1.4.1"
+    val testLib = Seq(
+      "org.scalatest" %% "scalatest" % "2.0.M5b" % "test"
+    )
+    val xerialLib = Seq(
+      "org.xerial" % "xerial-core" % "3.1",
+      "org.xerial" % "xerial-lens" % "3.1"
+    )
+    val apacheCommons = Seq("org.apache.commons" % "commons-compress" % "1.4.1")
   }
 
   import Dependencies._
@@ -97,16 +99,15 @@ object GlensBuild extends Build {
   private val dependentScope = "test->test;compile->compile"
 
 
-  lazy val glens = Project(
-    id = "glens",
+  lazy val gwCore = Project(
+    id = "gw-core",
     base = file("."),
-    settings = buildSettings ++ Seq(libraryDependencies ++= testLib :+ apacheCommons)
-  ) aggregate(xerialCore, xerialLens, xerialCui) dependsOn(xerialCore % dependentScope, xerialLens, xerialCui)
-
-  //lazy val xerial = RootProject(file("xerial"))
-  lazy val xerialCore = ProjectRef(file("xerial"), "xerial-core") 
-  lazy val xerialLens = ProjectRef(file("xerial"), "xerial-lens")
-  lazy val xerialCui = ProjectRef(file("xerial"), "xerial-cui")
+    settings = buildSettings ++ packSettings ++
+      Seq(
+        packMain := Map("gw-core" -> "utgenome.weaver.core.Main"),
+        libraryDependencies ++= testLib ++ apacheCommons ++ xerialLib ++ scalaLib
+      )
+  )
 
 }
 
