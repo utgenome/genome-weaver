@@ -9,6 +9,7 @@ package utgenome.weaver.core.array
 
 import java.nio.ByteBuffer
 import sun.misc.Unsafe
+import sun.nio.ch.DirectBuffer
 
 /**
  * @author Taro L. Saito
@@ -71,7 +72,7 @@ class LIntArraySimple(val size:Long) extends LArrayTrait[Int] {
   }
 
   // a(i) = a(j) = 1
-  def update(i: Long, v: Int): Int = {
+  def update(i: Long, v: Int) : Int = {
     boundaryCheck(i)
     arr.update(i.toInt, v)
     v
@@ -91,16 +92,25 @@ class LIntArray(val size:Long) extends LArrayTrait[Int] {
   }
 
   private val address = {
+    val b = ByteBuffer.allocateDirect(size.toInt * 4).asInstanceOf[DirectBuffer]
+    b.address()
     // TODO use JNuma
-    unsafe.allocateMemory(4 * size)
+    //unsafe.allocateMemory(4 * size)
   }
 
+//  private val arr = {
+//    //new Array[Byte](size.toInt * 4)
+//  }
+
+
   def apply(i: Long): Int = {
+    //unsafe.getInt(arr, i * 4)
     unsafe.getInt(address + i * 4)
   }
 
   // a(i) = a(j) = 1
-  def update(i: Long, v: Int): Int = {
+  def update(i: Long, v: Int) : Int = {
+    //unsafe.putInt(arr, i * 4, v)
     unsafe.putInt(address + i * 4, v)
     v
   }
