@@ -51,6 +51,7 @@ object GenomeWeaverBuild extends Build {
     publishTo <<= version { (v) => Some(releaseResolver(v)) },
     pomIncludeRepository := { _ => false },
     parallelExecution := true,
+    parallelExecution in Test := false,
     crossPaths := false,
     scalacOptions ++= Seq("-encoding", "UTF-8", "-deprecation", "-unchecked", "-feature"),
     pomExtra := {
