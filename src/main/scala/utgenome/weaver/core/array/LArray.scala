@@ -17,6 +17,13 @@ import xerial.jnuma.Numa
  */
 object LArray {
 
+  def free[T](arr:LArrayTrait[T]) {
+    arr match {
+      case a:LIntArray => {
+        a.free
+      }
+    }
+  }
 
   object EmptyArray extends LArrayTrait[Nothing] {
     def size: Long = 0
@@ -81,7 +88,10 @@ class LIntArraySimple(val size:Long) extends LArrayTrait[Int] {
 }
 
 
-class LIntArray(val size:Long) extends LArrayTrait[Int] {
+class LIntArray(val size:Long, address:Long) extends LArrayTrait[Int] {
+
+  def this(size:Long) = this(size, Numa.allocMemory(size * 4))
+
   private def boundaryCheck(i:Long) {
     if(i > Int.MaxValue)
       sys.error(f"index must be smaller than ${Int.MaxValue}%,d")
@@ -92,13 +102,13 @@ class LIntArray(val size:Long) extends LArrayTrait[Int] {
     f.get(null).asInstanceOf[Unsafe]
   }
 
-  private val address = {
-    // TODO use JNuma
-    val mem = Numa.allocMemory(size * 4)
-    mem 
-    //val b = ByteBuffer.allocateDirect(size.toInt * 4).asInstanceOf[DirectBuffer]
-    //b.address()
-  }
+  //private val address =
+//    // TODO use JNuma
+//    val mem =
+//    mem
+//    //val b = ByteBuffer.allocateDirect(size.toInt * 4).asInstanceOf[DirectBuffer]
+//    //b.address()
+//  }
 
 //  private val arr = {
 //    //new Array[Byte](size.toInt * 4)
@@ -107,14 +117,18 @@ class LIntArray(val size:Long) extends LArrayTrait[Int] {
 
   def apply(i: Long): Int = {
     //unsafe.getInt(arr, i * 4)
-    unsafe.getInt(address + i * 4)
+    unsafe.getInt(address + (i << 2))
   }
 
   // a(i) = a(j) = 1
   def update(i: Long, v: Int) : Int = {
     //unsafe.putInt(arr, i * 4, v)
-    unsafe.putInt(address + i * 4, v)
+    unsafe.putInt(address + (i << 2), v)
     v
+  }
+
+  def free = {
+    Numa.free(address, size * 4)
   }
 }
 
