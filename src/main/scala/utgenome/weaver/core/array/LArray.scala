@@ -10,6 +10,7 @@ package utgenome.weaver.core.array
 import java.nio.ByteBuffer
 import sun.misc.Unsafe
 import sun.nio.ch.DirectBuffer
+import xerial.jnuma.Numa
 
 /**
  * @author Taro L. Saito
@@ -93,8 +94,10 @@ class LIntArray(val size:Long) extends LArrayTrait[Int] {
 
   private val address = {
     // TODO use JNuma
-    val b = ByteBuffer.allocateDirect(size.toInt * 4).asInstanceOf[DirectBuffer]
-    b.address()
+    val mem = Numa.allocMemory(size * 4)
+    mem 
+    //val b = ByteBuffer.allocateDirect(size.toInt * 4).asInstanceOf[DirectBuffer]
+    //b.address()
   }
 
 //  private val arr = {
