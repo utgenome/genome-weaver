@@ -92,10 +92,9 @@ class LIntArray(val size:Long) extends LArrayTrait[Int] {
   }
 
   private val address = {
+    // TODO use JNuma
     val b = ByteBuffer.allocateDirect(size.toInt * 4).asInstanceOf[DirectBuffer]
     b.address()
-    // TODO use JNuma
-    //unsafe.allocateMemory(4 * size)
   }
 
 //  private val arr = {
