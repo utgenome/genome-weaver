@@ -38,7 +38,8 @@ class LArrayTest extends GLensSpec {
     }
 
     "use ByteBuffer" in {
-      val N = 1 * 1024 * 1024 * 1024
+      //val N = 1 * 1024 * 1024 * 1024
+      val N = 1 * 1024 * 1024
       info("benchmark started..")
       val arr1 = new Array[Int](N)
       val arr2 = new LIntArray(N)
@@ -76,7 +77,7 @@ class LArrayTest extends GLensSpec {
         arr2.free
     }
 
-    "create large array" in {
+    "create large array" taggedAs("la") in {
       val G: Long = 1024L * 1024 * 1024
       val arr = new LIntArray(4 * G)
       try {
