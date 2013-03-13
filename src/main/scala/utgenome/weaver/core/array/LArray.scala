@@ -7,6 +7,9 @@
 
 package utgenome.weaver.core.array
 
+import java.nio.ByteBuffer
+import sun.misc.Unsafe
+
 /**
  * @author Taro L. Saito
  */
@@ -21,10 +24,24 @@ object LArray {
 
   def apply() = EmptyArray
 
-  def apply(first:Int, elems:Int*) : LIntArray = {
+  def apply(first:Int, elems:Int*) : LArrayTrait[Int] = {
     // Int => Seq[Int]
-    new LIntArray(Array(first, elems:_*))
+    val size = 1 + elems.size
+    // TODO use strategy pattern to switch implementations
+//    val arr = if(size > Int.MaxValue) // always false
+//      new LIntArray(size)
+//    else
+//      new LIntArraySimple(size)
+    val arr = new LIntArray(size)
+    // Populate the array elements
+    arr(0) = first
+    for((e, i) <- elems.zipWithIndex) {
+      arr(i+1) = e
+    }
+    arr
   }
+
+
 
 }
 
@@ -38,12 +55,14 @@ trait LArrayTrait[T] {
 
 }
 
-class LIntArray(arr:Array[Int]) extends LArrayTrait[Int] {
-  def size: Long = arr.size
-
+class LIntArraySimple(val size:Long) extends LArrayTrait[Int] {
   private def boundaryCheck(i:Long) {
     if(i > Int.MaxValue)
       sys.error(f"index must be smaller than ${Int.MaxValue}%,d")
+  }
+  private val arr = {
+    boundaryCheck(size)
+    new Array[Int](size.toInt)
   }
 
   def apply(i: Long): Int = {
@@ -60,5 +79,30 @@ class LIntArray(arr:Array[Int]) extends LArrayTrait[Int] {
 }
 
 
+class LIntArray(val size:Long) extends LArrayTrait[Int] {
+  private def boundaryCheck(i:Long) {
+    if(i > Int.MaxValue)
+      sys.error(f"index must be smaller than ${Int.MaxValue}%,d")
+  }
+  private val unsafe : Unsafe = {
+    val f = classOf[Unsafe].getDeclaredField("theUnsafe")
+    f.setAccessible(true)
+    f.get(null).asInstanceOf[Unsafe]
+  }
 
+  private val address = {
+    // TODO use JNuma
+    unsafe.allocateMemory(4 * size)
+  }
+
+  def apply(i: Long): Int = {
+    unsafe.getInt(address + i * 4)
+  }
+
+  // a(i) = a(j) = 1
+  def update(i: Long, v: Int): Int = {
+    unsafe.putInt(address + i * 4, v)
+    v
+  }
+}
 
