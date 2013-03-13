@@ -95,7 +95,7 @@ class LIntArray(val size:Long) extends LArrayTrait[Int] {
   private val address = {
     // TODO use JNuma
     val mem = Numa.allocMemory(size * 4)
-    mem 
+    mem
     //val b = ByteBuffer.allocateDirect(size.toInt * 4).asInstanceOf[DirectBuffer]
     //b.address()
   }
