@@ -1,11 +1,14 @@
-Glens
+Genome Weaver
 === 
-Glens is a Scala library for reading and writing genomic data files.
+Genome Weaver is a set of utilities for manipulating large genomic data set using Scala (and Java).
 
-## Feature
+## Features
 
-* Object definitions for biological data formats
+* LArray: large arrays that can hold more than 2G (2^31) entries
+* Data structures for biological data 
 * Mapping data files into objects
+* FM-index based alignment (soon)
+* Visualiazation libraries for genome browsers
 
 ## Supported Formats
 
@@ -25,5 +28,5 @@ Glens is a Scala library for reading and writing genomic data files.
 * Data storage
   * compressed storage
   * split for parallel read/write
-* Synchronization
+
 
