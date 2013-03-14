@@ -55,6 +55,7 @@ trait MemoryAllocator extends Logger {
   protected def allocateInternal(size:Long) : Long
   protected def releaseInternal(addr:Long) : Unit
 
+
   /**
    * Allocate a memory of the specified byte length. The allocated memory must be released via [[utgenome.weaver.core.memory.MemoryAllocator#release]]
    * as in malloc() in C/C++.
@@ -101,8 +102,27 @@ object UnsafeUtil {
  */
 class UnsafeAllocator extends MemoryAllocator with Logger {
 
-  protected def allocateInternal(size: Long): Long = UnsafeUtil.unsafe.allocateMemory(size)
-  protected def releaseInternal(addr: Long) = UnsafeUtil.unsafe.freeMemory(addr)
+  import UnsafeUtil.unsafe
+
+  def newIntArray(size:Int) : Array[Int] = {
+    // Create an empty array
+    val arr = new Array[Int](0)
+    //val addrSize = unsafe.addressSize
+    val offset = unsafe.arrayBaseOffset(classOf[Array[Int]]).toLong
+    trace(s"array offset: $offset")
+    val addr = allocate(size)
+    // write array size
+    unsafe.putInt(arr, 12L, size)
+    val prevAddr = unsafe.getLong(arr, offset)
+    debug(f"prev addr: $prevAddr%X")
+    // write memory location
+    unsafe.putLong(arr, offset, addr)
+    arr
+  }
+
+
+  protected def allocateInternal(size: Long): Long = unsafe.allocateMemory(size)
+  protected def releaseInternal(addr: Long) = unsafe.freeMemory(addr)
 }
 
 /**

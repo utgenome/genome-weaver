@@ -119,7 +119,10 @@ object LArray {
 
 }
 
-
+/**
+ * Wrapping Array[Int] to support Long-type indexes
+ * @param size
+ */
 class LIntArraySimple(val size: Long) extends LArray[Int] {
   private def boundaryCheck(i: Long) {
     if (i > Int.MaxValue)
@@ -131,13 +134,13 @@ class LIntArraySimple(val size: Long) extends LArray[Int] {
   }
 
   def apply(i: Long): Int = {
-    boundaryCheck(i)
+    //boundaryCheck(i)
     arr.apply(i.toInt)
   }
 
   // a(i) = a(j) = 1
   def update(i: Long, v: Int): Int = {
-    boundaryCheck(i)
+    //boundaryCheck(i)
     arr.update(i.toInt, v)
     v
   }
@@ -146,6 +149,44 @@ class LIntArraySimple(val size: Long) extends LArray[Int] {
     // do nothing
   }
 }
+
+
+class MatrixBasedLIntArray(val size:Long) extends LArray[Int] {
+
+  private val maskLen : Int = 24
+  private val B : Int = 1 << maskLen // block size
+  private val mask : Long = ~(~0L << maskLen)
+
+  @inline private def index(i:Long) : Int = (i >>> maskLen).toInt
+  @inline private def offset(i:Long) : Int = (i & mask).toInt
+
+  private val numBlocks = ((size + (B - 1L))/ B).toInt
+  private val arr = Array.ofDim[Int](numBlocks, B)
+
+  /**
+   * Retrieve an element
+   * @param i index
+   * @return the element value
+   */
+  def apply(i: Long) = arr(index(i))(offset(i))
+
+  /**
+   * Update an element
+   * @param i index to be updated
+   * @param v value to set
+   * @return the value
+   */
+  def update(i: Long, v: Int) = {
+    arr(index(i))(offset(i)) = v
+    v
+  }
+
+  /**
+   * Release the memory of LArray. After calling this method, the results of calling the other methods becomes undefined or might cause JVM crash.
+   */
+  def free {}
+}
+
 
 /**
  * LArray of Int type

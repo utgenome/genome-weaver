@@ -83,6 +83,7 @@ class LArrayTest extends GenomeWeaverSpec {
       val arr1 = new Array[Int](N)
       val arr2 = new LIntArray(N)
       val arr3 = new LIntArraySimple(N)
+      val arr4 = new MatrixBasedLIntArray(N)
 
       try {
         val r = new Random(0)
@@ -96,21 +97,27 @@ class LArrayTest extends GenomeWeaverSpec {
           }
           a
         }
-        time("random access performance", repeat = 10) {
-          block("scala array") {
+        val R = 10
+        time("random access performance", repeat = 1) {
+          block("scala array", repeat=R) {
             for (i <- indexes)
               arr1(i) = 1
           }
 
-          block("LIntArray") {
+          block("LIntArray", repeat=R) {
             for (i <- indexes)
               arr2(i) = 1
 
           }
 
-          block("LIntArraySimple") {
+          block("LIntArraySimple", repeat=R) {
             for (i <- indexes)
               arr3(i) = 1
+          }
+
+          block("MatrixBasedLIntArray", repeat=R) {
+            for (i <- indexes)
+              arr4(i) = 1
           }
         }
       }
@@ -128,6 +135,7 @@ class LArrayTest extends GenomeWeaverSpec {
       val arr1 = new Array[Int](N)
       val arr2 = new LIntArray(N)
       val arr3 = new LIntArraySimple(N)
+      val arr4 = new MatrixBasedLIntArray(N)
 
       try {
         val range = (0 until (N / 10)).map(_.toLong).toSeq
@@ -147,6 +155,12 @@ class LArrayTest extends GenomeWeaverSpec {
             for (i <- range)
               arr3(i)
           }
+
+          block("MatrixBasedLIntArray") {
+            for (i <- range)
+              arr4(i)
+          }
+
         }
       }
       finally {
@@ -170,6 +184,8 @@ class LArrayTest extends GenomeWeaverSpec {
 
   }
 
+
+
   "LByteArray" should {
 
     "have constructor" in {
@@ -183,7 +199,7 @@ class LArrayTest extends GenomeWeaverSpec {
 
     "compare performance" taggedAs("bp") in {
 
-      val N = (0.1*G).toLong
+      val N = (0.01*G).toLong
       val a = new Array[Byte](N.toInt)
       val b = new LByteArray(N)
       info("LByteArray performance test has started")
