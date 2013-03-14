@@ -70,18 +70,15 @@ class LIntArraySimple(val size:Long) extends LArrayTrait[Int] {
       sys.error(f"index must be smaller than ${Int.MaxValue}%,d")
   }
   private val arr = {
-    boundaryCheck(size)
     new Array[Int](size.toInt)
   }
 
   def apply(i: Long): Int = {
-    boundaryCheck(i)
     arr.apply(i.toInt)
   }
 
   // a(i) = a(j) = 1
   def update(i: Long, v: Int) : Int = {
-    boundaryCheck(i)
     arr.update(i.toInt, v)
     v
   }
@@ -90,12 +87,8 @@ class LIntArraySimple(val size:Long) extends LArrayTrait[Int] {
 
 class LIntArray(val size:Long, address:Long) extends LArrayTrait[Int] {
 
-  def this(size:Long) = this(size, Numa.allocMemory(size * 4))
+  def this(size:Long) = this(size, Numa.allocMemory(size << 2))
 
-  private def boundaryCheck(i:Long) {
-    if(i > Int.MaxValue)
-      sys.error(f"index must be smaller than ${Int.MaxValue}%,d")
-  }
   private val unsafe : Unsafe = {
     val f = classOf[Unsafe].getDeclaredField("theUnsafe")
     f.setAccessible(true)
@@ -103,19 +96,17 @@ class LIntArray(val size:Long, address:Long) extends LArrayTrait[Int] {
   }
 
   def apply(i: Long): Int = {
-    //unsafe.getInt(arr, i * 4)
     unsafe.getInt(address + (i << 2))
   }
 
   // a(i) = a(j) = 1
   def update(i: Long, v: Int) : Int = {
-    //unsafe.putInt(arr, i * 4, v)
     unsafe.putInt(address + (i << 2), v)
     v
   }
 
   def free = {
-    Numa.free(address, size * 4)
+    Numa.free(address, size << 2)
   }
 }
 
