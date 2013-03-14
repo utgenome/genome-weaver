@@ -54,15 +54,11 @@ class LArrayTest extends GenomeWeaverSpec {
     "read/write values correctly" in {
       info("read/write test")
 
-      val step = 1
+      val step = 1L
       val l = new LIntArray((0.1 * G).toLong)
       try {
         def v(i: Long) = (i * 2).toInt
-        var i = 0L
-        while (i < l.size) {
-          l(i) = v(i)
-          i += step
-        }
+        for(i <- 0L until(l.size, step)) l(i) = v(i)
         def loop(i: Long): Boolean = {
           if (i >= l.size)
             true
@@ -135,7 +131,7 @@ class LArrayTest extends GenomeWeaverSpec {
 
       try {
         val range = (0 until (N / 10)).map(_.toLong).toSeq
-        time("sequential read performance", repeat = 1) {
+        time("sequential read performance", repeat = 5) {
           block("scala array") {
             for (i <- range)
               arr1(i.toInt)
