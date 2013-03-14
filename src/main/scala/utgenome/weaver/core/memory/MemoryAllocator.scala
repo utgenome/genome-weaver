@@ -55,6 +55,7 @@ trait MemoryAllocator extends Logger {
   def allocate(size:Long) : Long = {
     synchronized {
       val addr = allocateInternal(size)
+      trace(f"allocated memory:$addr%X")
       allocatedMemoryAddr += addr
       addr
     }
@@ -67,6 +68,7 @@ trait MemoryAllocator extends Logger {
   def release(addr:Long) : Unit = {
     synchronized {
       if(addr != 0 && allocatedMemoryAddr.contains(addr)) {
+        trace(f"release memory:$addr%X")
         releaseInternal(addr)
         allocatedMemoryAddr -= addr
       }
