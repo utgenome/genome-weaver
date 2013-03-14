@@ -8,7 +8,6 @@
 package utgenome.weaver.core.memory
 
 import sun.misc.Unsafe
-import java.util.concurrent.ConcurrentHashMap
 import xerial.core.log.Logger
 
 object MemoryAllocator {
