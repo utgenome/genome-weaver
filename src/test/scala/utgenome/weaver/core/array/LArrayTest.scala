@@ -183,43 +183,47 @@ class LArrayTest extends GenomeWeaverSpec {
 
     "compare performance" taggedAs("bp") in {
 
-      val N = (0.01*G).toLong
+      val N = (0.1*G).toLong
       val a = new Array[Byte](N.toInt)
       val b = new LByteArray(N)
       info("LByteArray performance test has started")
-      time("LByteArray random access", repeat=10) {
+      time("LByteArray random access & sort", repeat=5) {
         block("native array")  {
+          val r= new Random(0)
           for(i <- 0L until N) {
             val index = (i / 4) * 4
-            a((index + (i % 4L)).toInt)
+            a((index + (i % 4L)).toInt) = r.nextInt.toByte
           }
+          java.util.Arrays.sort(a)
         }
 
         block("LByteArray")  {
+          val r= new Random(0)
           for(i <- 0L until N) {
             val index = (i / 4) * 4
-            b((index + (i % 4L)))
+            b((index + (i % 4L))) = r.nextInt.toByte
           }
+          b.sort
         }
 
       }
 
       info("sequential access test")
-      time("LByteArray sequential write", repeat=20) {
+      time("LByteArray sequential write", repeat=5) {
         block("native array")  {
+          val r= new Random(0)
           for(i <- 0L until N) {
-            a(i.toInt) = i.toByte
+            a(i.toInt) = r.nextInt.toByte
           }
         }
 
         block("LByteArray")  {
+          val r= new Random(0)
           for(i <- 0L until N) {
-            b(i) = i.toByte
+            b(i) = r.nextInt.toByte
           }
         }
-
       }
-
 
       b.free
     }

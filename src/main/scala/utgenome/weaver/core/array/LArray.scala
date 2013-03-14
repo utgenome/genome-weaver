@@ -183,6 +183,8 @@ class LIntArray(val size: Long, val address: Long)(implicit mem: MemoryAllocator
  */
 class LByteArray(val size: Long, val address: Long)(implicit mem: MemoryAllocator) extends LArray[Byte] {
 
+  self =>
+
   def this(size: Long)(implicit mem: MemoryAllocator) = this(size, mem.allocate(size))
 
   /**
@@ -210,5 +212,37 @@ class LByteArray(val size: Long, val address: Long)(implicit mem: MemoryAllocato
    */
   def free {
     mem.release(address)
+  }
+
+  def sort {
+
+    def sort(left:Long, right:Long) {
+      val NUM_BYTE_VALUES = 256
+      // counting sort
+      val count: Array[Int] = new Array[Int](NUM_BYTE_VALUES)
+
+      {
+        var i : Long = left - 1
+        while ({ i += 1; i <= right}) {
+          count(self(i) - Byte.MinValue) += 1
+        }
+      }
+
+      {
+        var i = NUM_BYTE_VALUES
+        var k : Long = right + 1
+        while (k > left) {
+          while({ i -= 1; count(i) == 0} ) {}
+          val value: Byte = (i + Byte.MinValue).toByte
+          var s = count(i)
+          do {
+            k -= 1
+            self(k) = value
+          } while (({s -= 1; s}) > 0)
+        }
+      }
+    }
+
+    sort(0L, size-1L)
   }
 }
