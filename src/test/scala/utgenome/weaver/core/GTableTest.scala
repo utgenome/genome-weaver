@@ -10,7 +10,7 @@ package utgenome.weaver.core
 /**
  * @author leo
  */
-class GTableTest extends GLensSpec {
+class GTableTest extends GenomeWeaverSpec {
   "GTable" should {
 
     trait Sample {

@@ -7,15 +7,20 @@
 
 package utgenome.weaver.core.array
 
-import utgenome.weaver.core.GLensSpec
+import utgenome.weaver.core.GenomeWeaverSpec
 import util.Random
+import utgenome.weaver.core.memory.MemoryAllocator
 
 /**
  * @author Taro L. Saito
  */
-class LArrayTest extends GLensSpec {
+class LArrayTest extends GenomeWeaverSpec {
 
   val G: Long = 1024L * 1024 * 1024
+
+  override def afterEach {
+    MemoryAllocator.default.releaseAll
+  }
 
   "LArray" should {
     "have constructor" in {
@@ -75,7 +80,7 @@ class LArrayTest extends GLensSpec {
 
 
 
-    "use ByteBuffer" in {
+    "compare its performance with native Scala array and its wrapper" in {
       //val N = 1 * 1024 * 1024 * 1024
       val N = 64 * 1024 * 1024
       info("benchmark has started..")

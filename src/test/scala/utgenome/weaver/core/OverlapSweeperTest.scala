@@ -12,7 +12,7 @@ import Interval.IntervalOrdering
 /**
  * @author leo
  */
-class OverlapSweeperTest extends GLensSpec {
+class OverlapSweeperTest extends GenomeWeaverSpec {
 
   "OverlapSweeper" should {
     "report all overlapped intervals" in {
