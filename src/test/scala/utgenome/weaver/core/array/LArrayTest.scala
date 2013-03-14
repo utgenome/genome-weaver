@@ -157,7 +157,7 @@ class LArrayTest extends GenomeWeaverSpec {
 
 
     "create large array" taggedAs ("la") in {
-      for (i <- 0 until 100) {
+      for (i <- 0 until 10) {
         val arr = new LIntArray((2.1 * G).toLong)
         try {
           arr(arr.size - 1) = 134
@@ -167,6 +167,63 @@ class LArrayTest extends GenomeWeaverSpec {
         }
       }
     }
+
+  }
+
+  "LByteArray" should {
+
+    "have constructor" in {
+      val a = Array[Byte](1, 2, 3)
+      val b = LArray[Byte](1, 5, 34)
+
+      b(0) should be (1.toByte)
+      b(1) should be (5.toByte)
+      b(2) should be (34.toByte)
+    }
+
+    "compare performance" taggedAs("bp") in {
+
+      val N = (0.01*G).toLong
+      val a = new Array[Byte](N.toInt)
+      val b = new LByteArray(N)
+      info("LByteArray performance test has started")
+      time("LByteArray random access", repeat=10) {
+        block("native array")  {
+          for(i <- 0L until N) {
+            val index = (i / 4) * 4
+            a((index + (i % 4L)).toInt)
+          }
+        }
+
+        block("LByteArray")  {
+          for(i <- 0L until N) {
+            val index = (i / 4) * 4
+            b((index + (i % 4L)))
+          }
+        }
+
+      }
+
+      info("sequential access test")
+      time("LByteArray sequential write", repeat=20) {
+        block("native array")  {
+          for(i <- 0L until N) {
+            a(i.toInt) = i.toByte
+          }
+        }
+
+        block("LByteArray")  {
+          for(i <- 0L until N) {
+            b(i) = i.toByte
+          }
+        }
+
+      }
+
+
+      b.free
+    }
+
 
   }
 }
