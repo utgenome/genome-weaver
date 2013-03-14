@@ -7,26 +7,64 @@
 
 package utgenome.weaver.core.array
 
-import java.nio.ByteBuffer
-import sun.misc.Unsafe
-import sun.nio.ch.DirectBuffer
+import utgenome.weaver.core.memory.{UnsafeUtil, MemoryAllocator}
+
+/**
+ * Large Array (LArray) interface. The differences from Array[T] includes:
+ *
+ *  - LArray accepts Long type indexes, so it is possible to create arrays more than 2GB entries, a limitation of Array[T].
+ *  - The memory of LArray[T] resides outside of the normal garbage-collected JVM heap. So the user must release the memory via [[utgenome.weaver.core.array.LArray#free]].
+ *  - LArray elements are not initialized, so explicit initialization is needed
+ *  -
+ * @tparam T
+ */
+trait LArray[T] {
+
+  /**
+   * Size of this array
+   * @return size of this array
+   */
+  def size : Long
+
+  /**
+   * Retrieve an element
+   * @param i index
+   * @return the element value
+   */
+  def apply(i:Long) : T
+
+  /**
+   * Update an element
+   * @param i index to be updated
+   * @param v value to set
+   * @return the value
+   */
+  def update(i:Long, v:T) : T
+
+  /**
+   * Release the memory of LArray. After calling this method, the results of calling the other methods becomes undefined or might cause JVM crash.
+   */
+  def free : Unit
+
+}
 
 /**
  * @author Taro L. Saito
  */
 object LArray {
 
-
-  object EmptyArray extends LArrayTrait[Nothing] {
+  object EmptyArray extends LArray[Nothing] {
     def size: Long = 0
     def apply(i: Long): Nothing = { sys.error("not allowed") }
     def update(i: Long, v: Nothing): Nothing = { sys.error("not allowed")}
+    def free { /* do nothing */ }
   }
 
+  def empty = EmptyArray
   def apply() = EmptyArray
 
-  def apply(first:Int, elems:Int*) : LArrayTrait[Int] = {
-    // Int => Seq[Int]
+  def apply(first:Int, elems:Int*) : LArray[Int] = {
+    // elems: Int* => Seq[Int]
     val size = 1 + elems.size
     // TODO use strategy pattern to switch implementations
 //    val arr = if(size > Int.MaxValue) // always false
@@ -43,26 +81,16 @@ object LArray {
   }
 
 
-
 }
 
 
-trait LArrayTrait[T] {
 
-  def size : Long
-  def apply(i:Long) : T
-  // a(i) = a(j) = 1
-  def update(i:Long, v:T) : T
-
-}
-
-class LIntArraySimple(val size:Long) extends LArrayTrait[Int] {
+class LIntArraySimple(val size:Long) extends LArray[Int] {
   private def boundaryCheck(i:Long) {
     if(i > Int.MaxValue)
       sys.error(f"index must be smaller than ${Int.MaxValue}%,d")
   }
   private val arr = {
-    boundaryCheck(size)
     new Array[Int](size.toInt)
   }
 
@@ -77,41 +105,36 @@ class LIntArraySimple(val size:Long) extends LArrayTrait[Int] {
     arr.update(i.toInt, v)
     v
   }
+
+  def free {
+    // do nothing
+  }
 }
 
+/**
+ * LArray of Int type
+ * @param size  the size of array
+ * @param address memory address
+ * @param mem memory allocator
+ */
+class LIntArray(val size:Long, address:Long)(implicit mem:MemoryAllocator) extends LArray[Int] {
 
-class LIntArray(val size:Long) extends LArrayTrait[Int] {
-  private def boundaryCheck(i:Long) {
-    if(i > Int.MaxValue)
-      sys.error(f"index must be smaller than ${Int.MaxValue}%,d")
-  }
-  private val unsafe : Unsafe = {
-    val f = classOf[Unsafe].getDeclaredField("theUnsafe")
-    f.setAccessible(true)
-    f.get(null).asInstanceOf[Unsafe]
-  }
+  def this(size:Long)(implicit mem:MemoryAllocator) = this(size, mem.allocate(size << 2))
 
-  private val address = {
-    // TODO use JNuma
-    val b = ByteBuffer.allocateDirect(size.toInt * 4).asInstanceOf[DirectBuffer]
-    b.address()
-  }
-
-//  private val arr = {
-//    //new Array[Byte](size.toInt * 4)
-//  }
-
+  private val unsafe : sun.misc.Unsafe = UnsafeUtil.unsafe
 
   def apply(i: Long): Int = {
-    //unsafe.getInt(arr, i * 4)
-    unsafe.getInt(address + i * 4)
+    unsafe.getInt(address + (i << 2))
   }
 
   // a(i) = a(j) = 1
   def update(i: Long, v: Int) : Int = {
-    //unsafe.putInt(arr, i * 4, v)
-    unsafe.putInt(address + i * 4, v)
+    unsafe.putInt(address + (i << 2), v)
     v
   }
+  def free {
+    mem.release(address)
+  }
+
 }
 
