@@ -12,7 +12,7 @@ import util.Random
 /**
  * @author leo
  */
-class PrioritySearchTreeTest extends GLensSpec {
+class PrioritySearchTreeTest extends GenomeWeaverSpec {
 
 
   def overlapQuery(p: PrioritySearchTree[Interval], q: Interval) {

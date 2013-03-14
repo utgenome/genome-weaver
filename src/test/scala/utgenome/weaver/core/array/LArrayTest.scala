@@ -7,15 +7,20 @@
 
 package utgenome.weaver.core.array
 
-import utgenome.weaver.core.GLensSpec
+import utgenome.weaver.core.GenomeWeaverSpec
 import util.Random
+import utgenome.weaver.core.memory.MemoryAllocator
 
 /**
  * @author Taro L. Saito
  */
-class LArrayTest extends GLensSpec {
+class LArrayTest extends GenomeWeaverSpec {
 
   val G: Long = 1024L * 1024 * 1024
+
+  override def afterEach {
+    MemoryAllocator.default.releaseAll
+  }
 
   "LArray" should {
     "have constructor" in {
@@ -49,15 +54,11 @@ class LArrayTest extends GLensSpec {
     "read/write values correctly" in {
       info("read/write test")
 
-      val step = 1
+      val step = 1L
       val l = new LIntArray((0.1 * G).toLong)
       try {
         def v(i: Long) = (i * 2).toInt
-        var i = 0L
-        while (i < l.size) {
-          l(i) = v(i)
-          i += step
-        }
+        for(i <- 0L until(l.size, step)) l(i) = v(i)
         def loop(i: Long): Boolean = {
           if (i >= l.size)
             true
@@ -75,7 +76,7 @@ class LArrayTest extends GLensSpec {
 
 
 
-    "use ByteBuffer" in {
+    "compare its random access performance with native Scala array and its wrapper" in {
       //val N = 1 * 1024 * 1024 * 1024
       val N = 64 * 1024 * 1024
       info("benchmark has started..")
@@ -95,7 +96,7 @@ class LArrayTest extends GLensSpec {
           }
           a
         }
-        time("array performance", repeat = 10) {
+        time("random access performance", repeat = 10) {
           block("scala array") {
             for (i <- indexes)
               arr1(i) = 1
@@ -117,11 +118,46 @@ class LArrayTest extends GLensSpec {
         arr2.free
         arr3.free
       }
-
     }
 
+    "compare sequential access performance" in {
+
+      //val N = 1 * 1024 * 1024 * 1024
+      val N = 64 * 1024 * 1024
+      info("benchmark has started..")
+      val arr1 = new Array[Int](N)
+      val arr2 = new LIntArray(N)
+      val arr3 = new LIntArraySimple(N)
+
+      try {
+        val range = (0 until (N / 10)).map(_.toLong).toSeq
+        time("sequential read performance", repeat = 5) {
+          block("scala array") {
+            for (i <- range)
+              arr1(i.toInt)
+          }
+
+          block("LIntArray") {
+            for (i <- range)
+              arr2(i)
+
+          }
+
+          block("LIntArraySimple") {
+            for (i <- range)
+              arr3(i)
+          }
+        }
+      }
+      finally {
+        arr2.free
+        arr3.free
+      }
+    }
+
+
     "create large array" taggedAs ("la") in {
-      for (i <- 0 until 100) {
+      for (i <- 0 until 10) {
         val arr = new LIntArray((2.1 * G).toLong)
         try {
           arr(arr.size - 1) = 134
@@ -131,6 +167,67 @@ class LArrayTest extends GLensSpec {
         }
       }
     }
+
+  }
+
+  "LByteArray" should {
+
+    "have constructor" in {
+      val a = Array[Byte](1, 2, 3)
+      val b = LArray[Byte](1, 5, 34)
+
+      b(0) should be (1.toByte)
+      b(1) should be (5.toByte)
+      b(2) should be (34.toByte)
+    }
+
+    "compare performance" taggedAs("bp") in {
+
+      val N = (0.1*G).toLong
+      val a = new Array[Byte](N.toInt)
+      val b = new LByteArray(N)
+      info("LByteArray performance test has started")
+      time("LByteArray random access & sort", repeat=5) {
+        block("native array")  {
+          val r= new Random(0)
+          for(i <- 0L until N) {
+            val index = (i / 4) * 4
+            a((index + (i % 4L)).toInt) = r.nextInt.toByte
+          }
+          java.util.Arrays.sort(a)
+        }
+
+        block("LByteArray")  {
+          val r= new Random(0)
+          for(i <- 0L until N) {
+            val index = (i / 4) * 4
+            b((index + (i % 4L))) = r.nextInt.toByte
+          }
+          b.sort
+        }
+
+      }
+
+      info("sequential access test")
+      time("LByteArray sequential write", repeat=5) {
+        block("native array")  {
+          val r= new Random(0)
+          for(i <- 0L until N) {
+            a(i.toInt) = r.nextInt.toByte
+          }
+        }
+
+        block("LByteArray")  {
+          val r= new Random(0)
+          for(i <- 0L until N) {
+            b(i) = r.nextInt.toByte
+          }
+        }
+      }
+
+      b.free
+    }
+
 
   }
 }

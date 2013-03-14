@@ -1,6 +1,6 @@
 //--------------------------------------
 //
-// GLensSpec.scala
+// GenomeWeaverSpecverSpec.scala
 // Since: 2013/03/01 10:55
 //
 //--------------------------------------
@@ -10,7 +10,7 @@ package utgenome.weaver.core
 import org.scalatest.matchers.{MustMatchers, ShouldMatchers}
 import xerial.core.util.Timer
 import xerial.core.log.Logger
-import org.scalatest.{Tag, OptionValues, GivenWhenThen, WordSpec}
+import org.scalatest._
 import java.io.ByteArrayOutputStream
 import scala.language.implicitConversions
 import xerial.core.io.Resource
@@ -19,7 +19,8 @@ import xerial.core.io.Resource
 /**
  * @author leo
  */
-trait GLensSpec extends WordSpec with ShouldMatchers with MustMatchers with GivenWhenThen with OptionValues with Resource with Timer with Logger {
+trait GenomeWeaverSpec extends WordSpec with ShouldMatchers with MustMatchers with GivenWhenThen with OptionValues with Resource with Timer with Logger
+ with BeforeAndAfterAll with BeforeAndAfter with BeforeAndAfterEach {
 
   implicit def toTag(t:String) = Tag(t)
 

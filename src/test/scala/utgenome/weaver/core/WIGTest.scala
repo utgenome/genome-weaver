@@ -13,7 +13,7 @@ import utgenome.weaver.core.WIGParser._
 /**
  * @author leo
  */
-class WIGTest extends GLensSpec {
+class WIGTest extends GenomeWeaverSpec {
 
   import WIGParser._
 

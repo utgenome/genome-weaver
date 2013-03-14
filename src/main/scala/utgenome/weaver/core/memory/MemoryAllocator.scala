@@ -15,7 +15,7 @@ object MemoryAllocator {
   /**
    * Provides default memory allocator
    */
-  implicit val defaultAllocator : MemoryAllocator = new UnsafeAllocator
+  implicit val default : MemoryAllocator = new UnsafeAllocator
 
 }
 
@@ -32,16 +32,25 @@ trait MemoryAllocator extends Logger {
   // Register a shutdown hook to deallocate memory regions
   Runtime.getRuntime.addShutdownHook(new Thread(new Runnable {
     def run() {
-      trace("Releasing allocated memory regions")
-      synchronized {
-        val addrSet = Set() ++ allocatedMemoryAddr // take a copy of the set
-        for(addr <- addrSet) {
-          warn(f"Found unreleased address:$addr%x")
-          release(addr)
-        }
-      }
+      releaseAll
     }
   }))
+
+  /**
+   * Release all memory addresses taken by this allocator.
+   * Be careful in using this method, since all the memory addresses in LArray will be invalid.
+   */
+  def releaseAll {
+    synchronized {
+      val addrSet = Set() ++ allocatedMemoryAddr // take a copy of the set
+      if(!addrSet.isEmpty)
+        trace("Releasing allocated memory regions")
+      for(addr <- addrSet) {
+        warn(f"Found unreleased address:$addr%x")
+        release(addr)
+      }
+    }
+  }
 
   protected def allocateInternal(size:Long) : Long
   protected def releaseInternal(addr:Long) : Unit
@@ -55,6 +64,7 @@ trait MemoryAllocator extends Logger {
   def allocate(size:Long) : Long = {
     synchronized {
       val addr = allocateInternal(size)
+      trace(f"allocated memory:$addr%X")
       allocatedMemoryAddr += addr
       addr
     }
@@ -67,6 +77,7 @@ trait MemoryAllocator extends Logger {
   def release(addr:Long) : Unit = {
     synchronized {
       if(addr != 0 && allocatedMemoryAddr.contains(addr)) {
+        trace(f"release memory:$addr%X")
         releaseInternal(addr)
         allocatedMemoryAddr -= addr
       }

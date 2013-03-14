@@ -27,7 +27,7 @@ import util.Random
 /**
  * @author leo
  */
-class GRangeTest extends GLensSpec {
+class GRangeTest extends GenomeWeaverSpec {
 
 
   "interval" should {

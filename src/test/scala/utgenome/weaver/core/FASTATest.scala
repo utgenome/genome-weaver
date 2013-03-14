@@ -20,7 +20,7 @@ object ParserTest2 extends Tag("parser2")
 /**
  * @author leo
  */
-class FASTATest extends GLensSpec {
+class FASTATest extends GenomeWeaverSpec {
 
   "FASTA" should {
     "extract sequence name" in {

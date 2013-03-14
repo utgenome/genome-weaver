@@ -12,7 +12,7 @@ import util.Random
 /**
  * @author leo
  */
-class ACGTSeqTest extends GLensSpec {
+class ACGTSeqTest extends GenomeWeaverSpec {
 
   def compare(orig: String, seq: ACGTSeq) {
     orig.length should be(seq.length)
