@@ -80,7 +80,7 @@ class LArrayTest extends GenomeWeaverSpec {
 
 
 
-    "compare its performance with native Scala array and its wrapper" in {
+    "compare its random access performance with native Scala array and its wrapper" in {
       //val N = 1 * 1024 * 1024 * 1024
       val N = 64 * 1024 * 1024
       info("benchmark has started..")
@@ -100,7 +100,7 @@ class LArrayTest extends GenomeWeaverSpec {
           }
           a
         }
-        time("array performance", repeat = 10) {
+        time("random access performance", repeat = 10) {
           block("scala array") {
             for (i <- indexes)
               arr1(i) = 1
@@ -122,8 +122,43 @@ class LArrayTest extends GenomeWeaverSpec {
         arr2.free
         arr3.free
       }
-
     }
+
+    "compare sequential access performance" in {
+
+      //val N = 1 * 1024 * 1024 * 1024
+      val N = 64 * 1024 * 1024
+      info("benchmark has started..")
+      val arr1 = new Array[Int](N)
+      val arr2 = new LIntArray(N)
+      val arr3 = new LIntArraySimple(N)
+
+      try {
+        val range = (0 until (N / 10)).map(_.toLong).toSeq
+        time("sequential read performance", repeat = 1) {
+          block("scala array") {
+            for (i <- range)
+              arr1(i.toInt)
+          }
+
+          block("LIntArray") {
+            for (i <- range)
+              arr2(i)
+
+          }
+
+          block("LIntArraySimple") {
+            for (i <- range)
+              arr3(i)
+          }
+        }
+      }
+      finally {
+        arr2.free
+        arr3.free
+      }
+    }
+
 
     "create large array" taggedAs ("la") in {
       for (i <- 0 until 100) {
