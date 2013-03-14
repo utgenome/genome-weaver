@@ -51,6 +51,7 @@ object GenomeWeaverBuild extends Build {
     publishTo <<= version { (v) => Some(releaseResolver(v)) },
     pomIncludeRepository := { _ => false },
     parallelExecution := true,
+    parallelExecution in Test := false,
     crossPaths := false,
     scalacOptions ++= Seq("-encoding", "UTF-8", "-deprecation", "-unchecked", "-feature"),
     pomExtra := {
@@ -92,6 +93,7 @@ object GenomeWeaverBuild extends Build {
       "org.xerial" % "xerial-lens" % "3.1"
     )
     val apacheCommons = Seq("org.apache.commons" % "commons-compress" % "1.4.1")
+    val coreLib = Seq("org.xerial" % "jnuma" % "0.1.3")
   }
 
   import Dependencies._
@@ -105,7 +107,7 @@ object GenomeWeaverBuild extends Build {
     settings = buildSettings ++ packSettings ++
       Seq(
         packMain := Map("gw-core" -> "utgenome.weaver.core.Main"),
-        libraryDependencies ++= testLib ++ apacheCommons ++ xerialLib ++ scalaLib
+        libraryDependencies ++= testLib ++ apacheCommons ++ xerialLib ++ scalaLib ++ coreLib
       )
   )
 
