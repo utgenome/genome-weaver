@@ -94,6 +94,8 @@ object UnsafeUtil {
     f.get(null).asInstanceOf[Unsafe]
   }
 
+  val byteArrayOffset = unsafe.arrayBaseOffset(classOf[Array[Byte]])
+
 }
 
 

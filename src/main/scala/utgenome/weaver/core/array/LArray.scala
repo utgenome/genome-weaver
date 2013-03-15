@@ -10,6 +10,7 @@ package utgenome.weaver.core.array
 import utgenome.weaver.core.memory.{UnsafeUtil, MemoryAllocator}
 import scala.reflect.runtime.{universe => ru}
 import ru._
+import utgenome.weaver.core.memory.UnsafeUtil._
 
 /**
  * Large Array (LArray) interface. The differences from Array[T] includes:
@@ -27,6 +28,12 @@ trait LArray[T] {
    * @return size of this array
    */
   def size: Long
+
+  /**
+   * byte length of this array
+   * @return
+   */
+  def byteLength: Long
 
   /**
    * Retrieve an element
@@ -48,6 +55,28 @@ trait LArray[T] {
    */
   def free: Unit
 
+
+  /**
+   * Write the contents of this array to the destination buffer
+   * @param srcOffset byte offset
+   * @param dest destination array
+   * @param destOffset offset in the destination array
+   * @param length the byte length to write
+   * @return byte length to write
+   */
+  def write(srcOffset:Long, dest:Array[Byte], destOffset:Int, length:Int) : Int
+}
+
+trait LArrayOps[T] { self : LArray[T] =>
+
+  def foreach[U](f: T => U) {
+    var i = 0L
+    while(i < size) {
+      f(self(i))
+      i+=1
+    }
+  }
+
 }
 
 /**
@@ -56,7 +85,8 @@ trait LArray[T] {
 object LArray {
 
   object EmptyArray extends LArray[Nothing] {
-    def size: Long = 0
+    def size: Long = 0L
+    def byteLength = 0L
 
     def apply(i: Long): Nothing = {
       sys.error("not allowed")
@@ -69,6 +99,16 @@ object LArray {
     def free {
       /* do nothing */
     }
+
+    /**
+     * Write the contents of this array to the destination buffer
+     * @param srcOffset byte offset
+     * @param dest destination array
+     * @param destOffset offset in the destination array
+     * @param length the byte length to write
+     * @return byte length to write
+     */
+    def write(srcOffset: Long, dest: Array[Byte], destOffset: Int, length: Int): Int = 0
   }
 
   def empty = EmptyArray
@@ -124,6 +164,9 @@ object LArray {
  * @param size
  */
 class LIntArraySimple(val size: Long) extends LArray[Int] {
+
+  def byteLength = size * 4
+
   private def boundaryCheck(i: Long) {
     if (i > Int.MaxValue)
       sys.error(f"index must be smaller than ${Int.MaxValue}%,d")
@@ -148,10 +191,30 @@ class LIntArraySimple(val size: Long) extends LArray[Int] {
   def free {
     // do nothing
   }
+
+  /**
+   * Write the contents of this array to the destination buffer
+   * @param srcOffset byte offset
+   * @param dest destination array
+   * @param destOffset offset in the destination array
+   * @param length the byte length to write
+   * @return byte length to write
+   */
+  def write(srcOffset: Long, dest: Array[Byte], destOffset: Int, length: Int): Int = {
+    System.arraycopy(arr, srcOffset.toInt, dest, destOffset, length)
+    length
+  }
 }
 
 
+/**
+ * Emulate large arrays using two-diemensional matrix of Int. Array[Int](page index)(offset in page)
+ * @param size
+ */
 class MatrixBasedLIntArray(val size:Long) extends LArray[Int] {
+
+  def byteLength = size * 4
+
 
   private val maskLen : Int = 24
   private val B : Int = 1 << maskLen // block size
@@ -185,8 +248,42 @@ class MatrixBasedLIntArray(val size:Long) extends LArray[Int] {
    * Release the memory of LArray. After calling this method, the results of calling the other methods becomes undefined or might cause JVM crash.
    */
   def free {}
+
+  /**
+   * Write the contents of this array to the destination buffer
+   * @param srcOffset byte offset
+   * @param dest destination array
+   * @param destOffset offset in the destination array
+   * @param length the byte length to write
+   * @return byte length to write
+   */
+  def write(srcOffset: Long, dest: Array[Byte], destOffset: Int, length: Int): Int = {
+    // TODO
+    0
+  }
 }
 
+
+private[array] trait UnsafeArray[T] { self: LArray[T] =>
+
+  def address: Long
+
+  /**
+   * Write the contents of this array to the destination buffer
+   * @param srcOffset byte offset
+   * @param dest destination array
+   * @param destOffset offset in the destination array
+   * @param length the byte length to write
+   * @return written byte length
+   */
+  def write(srcOffset: Long, dest: Array[Byte], destOffset: Int, length: Int): Int = {
+    val destAddr = unsafe.getLong(dest, UnsafeUtil.byteArrayOffset)
+    val writeLen = math.min(dest.length - destOffset, math.min(length, size - srcOffset))
+    unsafe.copyMemory(address, destAddr, writeLen)
+    writeLen.toInt
+  }
+
+}
 
 /**
  * LArray of Int type
@@ -194,11 +291,13 @@ class MatrixBasedLIntArray(val size:Long) extends LArray[Int] {
  * @param address memory address
  * @param mem memory allocator
  */
-class LIntArray(val size: Long, val address: Long)(implicit mem: MemoryAllocator) extends LArray[Int] {
+class LIntArray(val size: Long, val address: Long)(implicit mem: MemoryAllocator) extends LArray[Int] with UnsafeArray[Int] {
 
   def this(size: Long)(implicit mem: MemoryAllocator) = this(size, mem.allocate(size << 2))
 
-  private val unsafe: sun.misc.Unsafe = UnsafeUtil.unsafe
+  def byteLength = size * 4
+
+  import UnsafeUtil.unsafe
 
   def apply(i: Long): Int = {
     unsafe.getInt(address + (i << 2))
@@ -213,7 +312,6 @@ class LIntArray(val size: Long, val address: Long)(implicit mem: MemoryAllocator
   def free {
     mem.release(address)
   }
-
 }
 
 /**
@@ -222,11 +320,15 @@ class LIntArray(val size: Long, val address: Long)(implicit mem: MemoryAllocator
  * @param address
  * @param mem
  */
-class LByteArray(val size: Long, val address: Long)(implicit mem: MemoryAllocator) extends LArray[Byte] {
-
+class LByteArray(val size: Long, val address: Long)(implicit mem: MemoryAllocator)
+  extends LArray[Byte]
+  with UnsafeArray[Byte]
+{
   self =>
 
   def this(size: Long)(implicit mem: MemoryAllocator) = this(size, mem.allocate(size))
+
+  def byteLength = size
 
   /**
    * Retrieve an element
@@ -286,4 +388,6 @@ class LByteArray(val size: Long, val address: Long)(implicit mem: MemoryAllocato
 
     sort(0L, size-1L)
   }
+
+
 }
