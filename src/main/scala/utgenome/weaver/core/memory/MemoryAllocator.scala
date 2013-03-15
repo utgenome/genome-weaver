@@ -117,23 +117,6 @@ class UnsafeAllocator extends MemoryAllocator with Logger {
 
   import UnsafeUtil.unsafe
 
-  def newIntArray(size:Int) : Array[Int] = {
-    // Create an empty array
-    val arr = new Array[Int](0)
-    //val addrSize = unsafe.addressSize
-    val offset = unsafe.arrayBaseOffset(classOf[Array[Int]]).toLong
-    trace(s"array offset: $offset")
-    val addr = allocate(size)
-    // write array size
-    unsafe.putInt(arr, 12L, size)
-    val prevAddr = unsafe.getLong(arr, offset)
-    debug(f"prev addr: $prevAddr%X")
-    // write memory location
-    unsafe.putLong(arr, offset, addr)
-    arr
-  }
-
-
   protected def allocateInternal(size: Long): Long = unsafe.allocateMemory(size)
   protected def releaseInternal(addr: Long) = unsafe.freeMemory(addr)
 }
