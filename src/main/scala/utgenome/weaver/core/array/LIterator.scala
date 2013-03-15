@@ -7,7 +7,9 @@
 
 package utgenome.weaver.core.array
 
-import collection.AbstractIterator
+import collection.{AbstractIterator, Iterator}
+import scala.Iterator
+import collection.Iterator._
 
 
 /**
@@ -63,7 +65,17 @@ trait LIterator[+A] {
     while (!res && hasNext) res = p(next)
     res
   }
-  def contains(elem: A): Boolean = exists(_ == elem)
+  def contains(elem: Any): Boolean = exists(_ == elem)
+
+  def find(p: A => Boolean): Option[A] = {
+    var res: Option[A] = None
+    while (res.isEmpty && hasNext) {
+      val e = next
+      if (p(e)) res = Some(e)
+    }
+    res
+  }
+
 
   def foreach[U](f: A => U) : Unit = while(hasNext) { f(next) }
   def forall(pred: A => Boolean) : Boolean = {
@@ -77,10 +89,10 @@ trait LIterator[+A] {
     def hasNext: Boolean = self.hasNext
   }
 
-  def flatMap[B](f: A => LIterator[B]) : LIterator[B] = new AbstractLIterator[B] {
+  def flatMap[B](f: A => LIterable[B]) : LIterator[B] = new AbstractLIterator[B] {
     private var current : LIterator[B] = empty
     def hasNext: Boolean =
-      current.hasNext || self.hasNext && { current = f(self.next); hasNext }
+      current.hasNext || self.hasNext && { current = f(self.next).toIterator; hasNext }
     def next: B = (if(hasNext) current else empty).next
   }
 
@@ -123,10 +135,28 @@ trait LIterator[+A] {
   def mkString(sep: String): String = mkString("", sep, "")
   def mkString: String = mkString("")
 
+  def withFilter(p: A => Boolean): LIterator[A] = filter(p)
 
-//  def sameElements(that:LArray[A]) : Boolean = {
-//
-//  }
+
+  def sameElements(that:LIterator[_]) : Boolean = {
+    while (hasNext && that.hasNext)
+      if (next != that.next)
+        return false
+
+    !hasNext && !that.hasNext
+  }
+
+  def zipAll[B, A1 >: A, B1 >: B](that: LIterator[B], thisElem: A1, thatElem: B1): LIterator[(A1, B1)] = new AbstractLIterator[(A1, B1)] {
+    def hasNext = self.hasNext || that.hasNext
+    def next(): (A1, B1) =
+      if (self.hasNext) {
+        if (that.hasNext) (self.next, that.next)
+        else (self.next, thatElem)
+      } else {
+        if (that.hasNext) (thisElem, that.next)
+        else empty.next
+      }
+  }
 
   def zipWithIndex : LIterator[(A, Long)] = new AbstractLIterator[(A, Long)] {
     private var index = 0L

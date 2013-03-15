@@ -15,15 +15,15 @@ import xerial.core.log.Logger
 import collection.GenIterable
 
 /**
- * Large Array (LArray) interface. The differences from Array[T] includes:
+ * Large Array (LArray) interface. The differences from Array[A] includes:
  *
- * - LArray accepts Long type indexes, so it is possible to create arrays more than 2GB entries, a limitation of Array[T].
- * - The memory of LArray[T] resides outside of the normal garbage-collected JVM heap. So the user must release the memory via [[utgenome.weaver.core.array.LArray# f r e e]].
+ * - LArray accepts Long type indexes, so it is possible to create arrays more than 2GB entries, a limitation of Array[A].
+ * - The memory of LArray[A] resides outside of the normal garbage-collected JVM heap. So the user must release the memory via [[utgenome.weaver.core.array.LArray#free]].
  * - LArray elements are not initialized, so explicit initialization is needed
  * -
  * @tparam T
  */
-trait LArray[T] extends LArrayOps[T] {
+trait LArray[A] extends LArrayOps[A] with LIterable[A] {
 
   /**
    * Size of this array
@@ -42,7 +42,7 @@ trait LArray[T] extends LArrayOps[T] {
    * @param i index
    * @return the element value
    */
-  def apply(i: Long): T
+  def apply(i: Long): A
 
   /**
    * Update an element
@@ -50,7 +50,7 @@ trait LArray[T] extends LArrayOps[T] {
    * @param v value to set
    * @return the value
    */
-  def update(i: Long, v: T): T
+  def update(i: Long, v: A): A
 
   /**
    * Release the memory of LArray. After calling this method, the results of calling the other methods becomes undefined or might cause JVM crash.
@@ -68,7 +68,7 @@ object LArray {
 
   object EmptyArray
     extends LArray[Nothing]
-    with LArrayOpsImpl[Nothing]
+    with LIterable[Nothing]
   {
     def size: Long = 0L
     def byteLength = 0L
@@ -94,6 +94,7 @@ object LArray {
      * @param length
      */
     def read(src: Array[Byte], srcOffset: Int, destOffset: Long, length: Int) = 0
+
   }
 
   def empty = EmptyArray
@@ -148,7 +149,7 @@ object LArray {
  * Wrapping Array[Int] to support Long-type indexes
  * @param size
  */
-class LIntArraySimple(val size: Long) extends LArray[Int] with LArrayOpsImpl[Int] {
+class LIntArraySimple(val size: Long) extends LArray[Int] {
 
   def byteLength = size * 4
 
@@ -208,7 +209,7 @@ class LIntArraySimple(val size: Long) extends LArray[Int] with LArrayOpsImpl[Int
  * Emulate large arrays using two-diemensional matrix of Int. Array[Int](page index)(offset in page)
  * @param size
  */
-class MatrixBasedLIntArray(val size:Long) extends LArray[Int] with LArrayOpsImpl[Int] {
+class MatrixBasedLIntArray(val size:Long) extends LArray[Int] {
 
   def byteLength = size * 4
 
@@ -312,8 +313,7 @@ private[array] trait UnsafeArray[T] extends Logger { self: LArray[T] =>
 class LIntArray(val size: Long, val address: Long)(implicit mem: MemoryAllocator)
   extends LArray[Int]
   with UnsafeArray[Int]
-  with LArrayOpsImpl[Int] {
-
+{
   def this(size: Long)(implicit mem: MemoryAllocator) = this(size, mem.allocate(size << 2))
 
   def byteLength = size * 4
@@ -344,7 +344,6 @@ class LIntArray(val size: Long, val address: Long)(implicit mem: MemoryAllocator
 class LByteArray(val size: Long, val address: Long)(implicit mem: MemoryAllocator)
   extends LArray[Byte]
   with UnsafeArray[Byte]
-  with LArrayOpsImpl[Byte]
 {
   self =>
 
