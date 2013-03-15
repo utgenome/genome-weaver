@@ -97,8 +97,8 @@ class LArrayTest extends GenomeWeaverSpec {
           }
           a
         }
-        val R = 10
-        time("random access performance", repeat = 1) {
+        val R = 20
+        time("random access performance", repeat = 3) {
           block("scala array", repeat=R) {
             for (i <- indexes)
               arr1(i) = 1

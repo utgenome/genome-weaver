@@ -249,7 +249,7 @@ class LByteArray(val size: Long, val address: Long)(implicit mem: MemoryAllocato
   }
 
   /**
-   * Release the memory of LArray. After calling this method, the results of calling the other methods becomes undefined or might cause JVM crash.
+   * Release the memory of LArray. After calling this method, the results of calling the behavior of the other methods becomes undefined or might cause JVM crash.
    */
   def free {
     mem.release(address)
