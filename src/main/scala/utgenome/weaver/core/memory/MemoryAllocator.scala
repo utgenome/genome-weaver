@@ -102,7 +102,7 @@ object UnsafeUtil {
   val byteArrayOffset = unsafe.arrayBaseOffset(classOf[Array[Byte]]).toLong
   val objectArrayOffset = unsafe.arrayBaseOffset(classOf[Array[AnyRef]]).toLong
   val addressBandWidth = System.getProperty("sun.arch.data.model", "64").toInt
-  private val addressFactor = addressBandWidth / 8
+  private val addressFactor = if(addressBandWidth == 64) 8L else 1L
   val addressSize = unsafe.addressSize()
 
   def getObjectAddr(obj:AnyRef) : Long = {
