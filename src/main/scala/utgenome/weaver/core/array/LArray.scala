@@ -11,6 +11,8 @@ import utgenome.weaver.core.memory.{UnsafeUtil, MemoryAllocator}
 import scala.reflect.runtime.{universe => ru}
 import ru._
 import utgenome.weaver.core.memory.UnsafeUtil._
+import xerial.core.log.Logger
+import collection.GenIterable
 
 /**
  * Large Array (LArray) interface. The differences from Array[T] includes:
@@ -21,7 +23,7 @@ import utgenome.weaver.core.memory.UnsafeUtil._
  * -
  * @tparam T
  */
-trait LArray[T] {
+trait LArray[T] extends LArrayOps[T] {
 
   /**
    * Size of this array
@@ -56,6 +58,15 @@ trait LArray[T] {
   def free: Unit
 
 
+}
+
+trait LArrayOps[T] {
+  def foreach[U](f: T => U) : Unit
+  def forall(f: T => Boolean) : Boolean
+  def mkString(sep:String) : String
+  def sameElements(that:LArray[T]) : Boolean
+  def zipWithIndex : Iterator[(T, Long)]
+
   /**
    * Write the contents of this array to the destination buffer
    * @param srcOffset byte offset
@@ -65,9 +76,59 @@ trait LArray[T] {
    * @return byte length to write
    */
   def write(srcOffset:Long, dest:Array[Byte], destOffset:Int, length:Int) : Int
+
+  /**
+   * Read the contents from a given source buffer
+   * @param src
+   * @param srcOffset
+   * @param destOffset
+   * @param length
+   */
+  def read(src:Array[Byte], srcOffset:Int, destOffset:Long, length:Int) : Int
+
+
 }
 
-trait LArrayOps[T] { self : LArray[T] =>
+trait LArrayOpsImpl[T]
+  extends LArrayOps[T]
+{
+  self : LArray[T] =>
+
+  private class LIterator extends Iterator[T] {
+    private[array] var cursor = 0L
+    def hasNext: Boolean = cursor < size
+
+    def next(): T = {
+      val v = self(cursor)
+      cursor += 1
+      v
+    }
+  }
+
+  def iterator : Iterator[T] = new LIterator
+
+  def forall(f:T => Boolean) = iterator.forall(f)
+
+  def zipWithIndex = new Iterator[(T, Long)] {
+    private val it = new LIterator
+    def hasNext: Boolean = it.hasNext
+    def next(): (T, Long) = {
+      val c = it.cursor
+      (it.next, c)
+    }
+  }
+
+  def sameElements(that:LArray[T]) : Boolean = {
+    if (self.size != that.size)
+      return false
+    var i = 0L
+    while(i < self.size) {
+      if(self(i) != that(i))
+        return false
+      i += 1
+    }
+    return true
+  }
 
   def foreach[U](f: T => U) {
     var i = 0L
@@ -77,6 +138,20 @@ trait LArrayOps[T] { self : LArray[T] =>
     }
   }
 
+
+  def mkString(sep:String) : String = {
+    val b = new StringBuilder
+    var i = 0L
+    while(i < size) {
+      if(i != 0)
+        b append sep
+      b append self(i)
+      i+=1
+    }
+    b.result
+  }
+
+
 }
 
 /**
@@ -84,7 +159,10 @@ trait LArrayOps[T] { self : LArray[T] =>
  */
 object LArray {
 
-  object EmptyArray extends LArray[Nothing] {
+  object EmptyArray
+    extends LArray[Nothing]
+    with LArrayOpsImpl[Nothing]
+  {
     def size: Long = 0L
     def byteLength = 0L
 
@@ -99,16 +177,16 @@ object LArray {
     def free {
       /* do nothing */
     }
+    def write(srcOffset: Long, dest: Array[Byte], destOffset: Int, length: Int): Int = 0
 
     /**
-     * Write the contents of this array to the destination buffer
-     * @param srcOffset byte offset
-     * @param dest destination array
-     * @param destOffset offset in the destination array
-     * @param length the byte length to write
-     * @return byte length to write
+     * Read the contents from a given source buffer
+     * @param src
+     * @param srcOffset
+     * @param destOffset
+     * @param length
      */
-    def write(srcOffset: Long, dest: Array[Byte], destOffset: Int, length: Int): Int = 0
+    def read(src: Array[Byte], srcOffset: Int, destOffset: Long, length: Int) = 0
   }
 
   def empty = EmptyArray
@@ -163,7 +241,7 @@ object LArray {
  * Wrapping Array[Int] to support Long-type indexes
  * @param size
  */
-class LIntArraySimple(val size: Long) extends LArray[Int] {
+class LIntArraySimple(val size: Long) extends LArray[Int] with LArrayOpsImpl[Int] {
 
   def byteLength = size * 4
 
@@ -204,6 +282,18 @@ class LIntArraySimple(val size: Long) extends LArray[Int] {
     System.arraycopy(arr, srcOffset.toInt, dest, destOffset, length)
     length
   }
+
+  /**
+   * Read the contents from a given source buffer
+   * @param src
+   * @param srcOffset
+   * @param destOffset
+   * @param length
+   */
+  def read(src: Array[Byte], srcOffset: Int, destOffset: Long, length: Int) = {
+    System.arraycopy(src, srcOffset, arr, destOffset.toInt, length)
+    length
+  }
 }
 
 
@@ -211,7 +301,7 @@ class LIntArraySimple(val size: Long) extends LArray[Int] {
  * Emulate large arrays using two-diemensional matrix of Int. Array[Int](page index)(offset in page)
  * @param size
  */
-class MatrixBasedLIntArray(val size:Long) extends LArray[Int] {
+class MatrixBasedLIntArray(val size:Long) extends LArray[Int] with LArrayOpsImpl[Int] {
 
   def byteLength = size * 4
 
@@ -261,10 +351,22 @@ class MatrixBasedLIntArray(val size:Long) extends LArray[Int] {
     // TODO
     0
   }
+
+  /**
+   * Read the contents from a given source buffer
+   * @param src
+   * @param srcOffset
+   * @param destOffset
+   * @param length
+   */
+  def read(src: Array[Byte], srcOffset: Int, destOffset: Long, length: Int) = {
+    // TODO
+    0
+  }
 }
 
 
-private[array] trait UnsafeArray[T] { self: LArray[T] =>
+private[array] trait UnsafeArray[T] extends Logger { self: LArray[T] =>
 
   def address: Long
 
@@ -277,10 +379,19 @@ private[array] trait UnsafeArray[T] { self: LArray[T] =>
    * @return written byte length
    */
   def write(srcOffset: Long, dest: Array[Byte], destOffset: Int, length: Int): Int = {
-    val destAddr = unsafe.getLong(dest, UnsafeUtil.byteArrayOffset)
-    val writeLen = math.min(dest.length - destOffset, math.min(length, size - srcOffset))
-    unsafe.copyMemory(address, destAddr, writeLen)
+    val writeLen = math.min(dest.length - destOffset, math.min(length, byteLength - srcOffset))
+    // Retrieve destination array address
+    val destAddr = UnsafeUtil.getObjectAddr(dest) + UnsafeUtil.byteArrayOffset
+    unsafe.copyMemory(address + srcOffset, destAddr + destOffset, writeLen)
     writeLen.toInt
+  }
+
+  def read(src:Array[Byte], srcOffset:Int, destOffset:Long, length:Int) : Int = {
+    val srcAddr = getObjectAddr(src) + UnsafeUtil.byteArrayOffset
+    val readLen = math.min(src.length-srcOffset, math.min(byteLength - destOffset, length))
+    debug(s"read len: $readLen")
+    unsafe.copyMemory(srcAddr, address + destOffset, readLen)
+    readLen.toInt
   }
 
 }
@@ -291,7 +402,10 @@ private[array] trait UnsafeArray[T] { self: LArray[T] =>
  * @param address memory address
  * @param mem memory allocator
  */
-class LIntArray(val size: Long, val address: Long)(implicit mem: MemoryAllocator) extends LArray[Int] with UnsafeArray[Int] {
+class LIntArray(val size: Long, val address: Long)(implicit mem: MemoryAllocator)
+  extends LArray[Int]
+  with UnsafeArray[Int]
+  with LArrayOpsImpl[Int] {
 
   def this(size: Long)(implicit mem: MemoryAllocator) = this(size, mem.allocate(size << 2))
 
@@ -323,6 +437,7 @@ class LIntArray(val size: Long, val address: Long)(implicit mem: MemoryAllocator
 class LByteArray(val size: Long, val address: Long)(implicit mem: MemoryAllocator)
   extends LArray[Byte]
   with UnsafeArray[Byte]
+  with LArrayOpsImpl[Byte]
 {
   self =>
 

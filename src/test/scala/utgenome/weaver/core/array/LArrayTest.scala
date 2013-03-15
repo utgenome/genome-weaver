@@ -73,6 +73,23 @@ class LArrayTest extends GenomeWeaverSpec {
       }
     }
 
+    "read/write data to Array[Byte]" taggedAs("rw") in {
+      val l = LArray(1, 3)
+      val b = new Array[Byte](l.byteLength.toInt)
+
+      debug(s"LArray: [${l.mkString(", ")}]")
+      debug(s"Array[Byte]: [${b.mkString(", ")}]")
+      l.write(0, b, 0, l.byteLength.toInt)
+
+      debug(s"Array[Byte]: [${b.mkString(", ")}]")
+      val l2 = LArray(0, 0)
+      l2.read(b, 0, 0, b.length)
+
+      debug(s"LArray2: [${l2.mkString(", ")}]")
+
+      l.sameElements(l2) should be (true)
+    }
+
 
 
 
@@ -97,7 +114,7 @@ class LArrayTest extends GenomeWeaverSpec {
           }
           a
         }
-        val R = 10
+        val R = 5
         time("random access performance", repeat = 3) {
           block("scala array", repeat=R) {
             for (i <- indexes)
