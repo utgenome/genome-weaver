@@ -36,6 +36,8 @@ trait MemoryAllocator extends Logger {
     }
   }))
 
+  private var hasDisplayedMemoryWarning = false
+
   /**
    * Release all memory addresses taken by this allocator.
    * Be careful in using this method, since all the memory addresses in LArray will be invalid.
@@ -46,7 +48,11 @@ trait MemoryAllocator extends Logger {
       if(!addrSet.isEmpty)
         trace("Releasing allocated memory regions")
       for(addr <- addrSet) {
-        warn(f"Found unreleased address:$addr%x. Probably LArray.free is not called properly. You can check when this memory is allocated by setting -Dloglevel=trace in JVM option")
+        warn(f"Found unreleased address:$addr%x")
+        if(!hasDisplayedMemoryWarning) {
+          warn("Probably LArray.free is not called properly. You can check when this memory is allocated by setting -Dloglevel=trace in JVM option")
+          hasDisplayedMemoryWarning = true
+        }
         release(addr)
       }
     }
