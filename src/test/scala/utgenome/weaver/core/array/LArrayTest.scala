@@ -95,7 +95,7 @@ class LArrayTest extends GenomeWeaverSpec {
 
     "compare its random access performance with native Scala array and its wrapper" in {
       //val N = 1 * 1024 * 1024 * 1024
-      val N = 64 * 1024 * 1024
+      val N = 1 * 1024 * 1024
       info("benchmark has started..")
       val arr1 = new Array[Int](N)
       val arr2 = new LIntArray(N)
@@ -115,7 +115,7 @@ class LArrayTest extends GenomeWeaverSpec {
           a
         }
         val R = 5
-        time("random access performance", repeat = 3) {
+        time("random access performance", repeat = 2) {
           block("scala array", repeat=R) {
             for (i <- indexes)
               arr1(i) = 1
