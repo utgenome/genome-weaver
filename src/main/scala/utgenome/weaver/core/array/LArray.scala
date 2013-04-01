@@ -21,7 +21,7 @@ import collection.GenIterable
  * - The memory of LArray[A] resides outside of the normal garbage-collected JVM heap. So the user must release the memory via [[utgenome.weaver.core.array.LArray#free]].
  * - LArray elements are not initialized, so explicit initialization is needed
  * -
- * @tparam T
+ * @tparam A
  */
 trait LArray[A] extends LArrayOps[A] with LIterable[A] {
 
@@ -289,7 +289,9 @@ private[array] trait UnsafeArray[T] extends Logger { self: LArray[T] =>
   def write(srcOffset: Long, dest: Array[Byte], destOffset: Int, length: Int): Int = {
     val writeLen = math.min(dest.length - destOffset, math.min(length, byteLength - srcOffset))
     // Retrieve destination array address
+    // TODO Use JNI to get Collect Address
     val destAddr = UnsafeUtil.getObjectAddr(dest) + UnsafeUtil.byteArrayOffset
+    trace(f"dest addr:$destAddr%x")
     unsafe.copyMemory(address + srcOffset, destAddr + destOffset, writeLen)
     writeLen.toInt
   }

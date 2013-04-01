@@ -92,7 +92,7 @@ trait MemoryAllocator extends Logger {
   }
 }
 
-object UnsafeUtil {
+object UnsafeUtil extends Logger {
   val unsafe = {
     val f = classOf[Unsafe].getDeclaredField("theUnsafe")
     f.setAccessible(true)
@@ -101,14 +101,17 @@ object UnsafeUtil {
 
   val byteArrayOffset = unsafe.arrayBaseOffset(classOf[Array[Byte]]).toLong
   val objectArrayOffset = unsafe.arrayBaseOffset(classOf[Array[AnyRef]]).toLong
+  val objectArrayScale = unsafe.arrayIndexScale(classOf[Array[AnyRef]]).toLong
   val addressBandWidth = System.getProperty("sun.arch.data.model", "64").toInt
   private val addressFactor = if(addressBandWidth == 64) 8L else 1L
   val addressSize = unsafe.addressSize()
 
   def getObjectAddr(obj:AnyRef) : Long = {
+    trace(f"address factor:$addressFactor%d, addressSize:$addressSize, objectArrayOffset:$objectArrayOffset, objectArrayScale:$objectArrayScale")
+
     val o = new Array[AnyRef](1)
     o(0) = obj
-    addressSize match {
+    objectArrayScale match {
       case 4 => (unsafe.getInt(o, objectArrayOffset) & 0xFFFFFFFFL) * addressFactor
       case 8 => (unsafe.getLong(o, objectArrayOffset) & 0xFFFFFFFFFFFFFFFFL) * addressFactor
     }

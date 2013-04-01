@@ -51,6 +51,16 @@ class LArrayTest extends GenomeWeaverSpec {
       }
     }
 
+    "have map/flatMap" in {
+      val l = LArray(1, 3, 5)
+      def mul(v:Int) = v * 2
+
+      val m = l.map(mul).toArray
+      m.size should be (3)
+      for(i <- 0L until l.size)
+        m(i.toInt) should be (mul(l(i)))
+    }
+
     "read/write values correctly" in {
       info("read/write test")
 

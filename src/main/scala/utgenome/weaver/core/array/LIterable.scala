@@ -7,6 +7,8 @@
 
 package utgenome.weaver.core.array
 
+import reflect.ClassTag
+
 
 /**
  * Iterable interface for LArray
@@ -17,6 +19,7 @@ trait LIterable[A] { self : LArray[A] =>
 
   def iterator : LIterator[A] = new AbstractLIterator[A] {
     private var index = 0L
+    override def size = self.size
     def hasNext: Boolean = index < size
     def next: A = {
       val v = self(index)
@@ -25,7 +28,11 @@ trait LIterable[A] { self : LArray[A] =>
     }
   }
   def toIterator : LIterator[A] = iterator
-
+  def toArray[A1 >: A : ClassTag] : Array[A1] = {
+    val b = Array.newBuilder[A1]
+    foreach(b += _)
+    b.result
+  }
 
   def collect[B](pf:PartialFunction[A, B]) : LIterator[B] = iterator.collect(pf)
   def contains(elem: A): Boolean = exists(_ == elem)

@@ -10,6 +10,7 @@ package utgenome.weaver.core.array
 import collection.{AbstractIterator, Iterator}
 import scala.Iterator
 import collection.Iterator._
+import reflect.ClassTag
 
 
 /**
@@ -145,6 +146,19 @@ trait LIterator[+A] {
 
     !hasNext && !that.hasNext
   }
+
+  def size : Long = {
+    var count = 0L
+    for(x <- self) count += 1
+    count
+  }
+
+  def toArray[A1 >: A : ClassTag] : Array[A1] = {
+    val b = Array.newBuilder[A1]
+    foreach(b += _)
+    b.result
+  }
+
 
   def zipAll[B, A1 >: A, B1 >: B](that: LIterator[B], thisElem: A1, thatElem: B1): LIterator[(A1, B1)] = new AbstractLIterator[(A1, B1)] {
     def hasNext = self.hasNext || that.hasNext
