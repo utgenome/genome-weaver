@@ -90,7 +90,8 @@ object GenomeWeaverBuild extends Build {
     )
     val xerialLib = Seq(
       "org.xerial" % "xerial-core" % "3.1",
-      "org.xerial" % "xerial-lens" % "3.1"
+      "org.xerial" % "xerial-lens" % "3.1",
+      "org.xerial" % "larray" % "0.1-M1"
     )
     val apacheCommons = Seq("org.apache.commons" % "commons-compress" % "1.4.1")
     val coreLib = Seq("org.xerial" % "jnuma" % "0.1.3")
