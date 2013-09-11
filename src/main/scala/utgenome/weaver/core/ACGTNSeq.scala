@@ -100,7 +100,7 @@ object ACGTNSeq extends DNA3bit {
     val numBases = src.getLong(cursor)
     cursor += 8
 
-    val seq = LArray.of[Long](numBases)
+    val seq = LArray.of[Long](minArraySize(numBases))
     Snappy.rawUncompress(src.address + cursor, src.length - cursor, seq.address)
     new ACGTNSeq(seq, numBases)
   }
@@ -437,6 +437,7 @@ class ACGTNSeqBuilder(private var capacity:Long)
         val newArray = LArray.of[Long](newArraySize)
         newArray.clear
         LArray.copy(seq, 0, newArray, 0, seq.length)
+        seq.free
         capacity = newArraySize / 3L * 64L
         seq = newArray
       }
