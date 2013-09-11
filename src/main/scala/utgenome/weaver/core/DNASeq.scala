@@ -125,7 +125,7 @@ trait DNASeqOps[Repr <: DNASeq with DNASeqOps[Repr]] extends CharSequence
 trait DNASeqBuilder[Repr] {
 
   def +=(base:DNA) : Unit
-  def +=(seq:String) : Unit = {
+  def ++=(seq:String) : Unit = {
     for (ch <- seq)
       this.+=(DNA(ch))
   }

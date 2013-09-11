@@ -40,6 +40,22 @@ import xerial.core.io.text.LineReader
  */
 object FASTA extends Logger {
 
+  private def create3bitIndexFrom(stream:Stream[FASTAEntryReader]) : FASTAIndex3bit = {
+    val index = Array.newBuilder[FASTAEntryIndex]
+    var offset = 0L
+    val b = ACGTNSeq.newBuilder
+    for(r : FASTAEntryReader <- stream) {
+      val desc = r.description
+      val name = r.name
+      debug("loading %s", name)
+      for(line <- r.lines) {
+        b ++= line
+      }
+      index += new FASTAEntryIndex(name, desc, offset, (b.numBases - offset).toInt)
+      offset = b.numBases
+    }
+    new FASTAIndex3bit(b.result, index.result)
+  }
 
   private def create2bitIndexFrom(stream:Stream[FASTAEntryReader]) : FASTAIndex2bit = {
     val index = Array.newBuilder[FASTAEntryIndex]
@@ -50,7 +66,7 @@ object FASTA extends Logger {
       val name = r.name
       debug("loading %s", name)
       for(line <- r.lines) {
-        b += line
+        b ++= line
       }
       // TODO preserve bit vector of Ns
       index += new FASTAEntryIndex(name, desc, offset, (b.numBases - offset).toInt)
@@ -62,6 +78,9 @@ object FASTA extends Logger {
   def create2bitIndexFrom(fastaFile:String) : FASTAIndex2bit = read(fastaFile)(create2bitIndexFrom)
   def create2bitIndexFromTarGZ(in:InputStream) = readTarGZ(in)(create2bitIndexFrom)
   def create2bitIndexFromTarGZ(in:Reader) : FASTAIndex = read(in)(create2bitIndexFrom)
+  def create3bitIndexFrom(fastaFile:String) : FASTAIndex3bit = read(fastaFile)(create3bitIndexFrom)
+  def create3bitIndexFromTarGZ(in:InputStream) = readTarGZ(in)(create3bitIndexFrom)
+  def create3bitIndexFromTarGZ(in:Reader) : FASTAIndex = read(in)(create3bitIndexFrom)
 
 
   def extractSequenceNameFrom(descriptionLine: String) = {

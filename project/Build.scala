@@ -108,7 +108,7 @@ object GenomeWeaverBuild extends Build {
     base = file("."),
     settings = buildSettings ++ packSettings ++
       Seq(
-        packMain := Map("gw-core" -> "utgenome.weaver.core.Main"),
+        packMain := Map("gw" -> "utgenome.weaver.core.Main"),
         libraryDependencies ++= testLib ++ apacheCommons ++ xerialLib ++ scalaLib ++ coreLib
       )
   )
