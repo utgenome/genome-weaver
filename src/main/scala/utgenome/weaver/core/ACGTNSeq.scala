@@ -8,11 +8,13 @@
 package utgenome.weaver.core
 
 import java.util
-import util.Arrays
+import java.util.Arrays
 import java.io._
 import xerial.core.io.IOUtil
 import org.xerial.snappy.{SnappyInputStream, SnappyOutputStream, Snappy}
-import xerial.larray.{LArrayInputStream, MappedLByteArray, MMapMode, LArray}
+import xerial.larray._
+import scala.Some
+import xerial.core.log.Logger
 import scala.Some
 
 
@@ -69,7 +71,7 @@ trait DNA3bit {
 }
 
 
-object ACGTNSeq extends DNA3bit {
+object ACGTNSeq extends DNA3bit with Logger {
 
   def newBuilder = new ACGTNSeqBuilder
   def newBuilder(numBases:Long) = new ACGTNSeqBuilder(numBases)
@@ -100,9 +102,8 @@ object ACGTNSeq extends DNA3bit {
     var cursor = offset
     val numBases = src.getLong(cursor)
     cursor += 8
-
-    val seq = LArray.of[Long](minArraySize(numBases))
-    Snappy.rawUncompress(src.address + cursor, src.length - cursor, seq.address)
+    val seq = new LLongArray(minArraySize(numBases))
+    src.copyTo(cursor, seq, 0, seq.byteLength)
     new ACGTNSeq(seq, numBases)
   }
 }
@@ -122,19 +123,26 @@ class ACGTNSeq(private val seq: LArray[Long], val numBases: Long)
   with DNASeqOps[ACGTNSeq]
   with DNA3bit {
 
+  /**
+   * Free the allocated memory. After calling this method, do not use any method in ACGTNSeq.
+   */
+  def free {
+    seq.free
+  }
+
   def saveTo(file:String)  { saveTo(new File(file)) }
 
   def saveTo(file:File) {
-    val mmap = LArray.mmap(file, 0, 0, MMapMode.READ_WRITE)
+    val mmap = LArray.mmap(file, 0, 8L + seq.byteLength, MMapMode.READ_WRITE)
     IOUtil.withResource(mmap){ m => saveTo(m, 0) }
   }
 
-  def saveTo(dest:LArray[Byte], offset:Long) {
+  def saveTo(dest:RawByteArray[Byte], offset:Long) {
     var cursor = offset
     dest.putLong(offset, numBases)
     cursor += 8
     val arrSize = minArraySize(numBases)
-    Snappy.rawCompress(seq.address, arrSize * 8, dest.address + cursor)
+    seq.copyTo(0, dest, cursor, arrSize * 8)
   }
 
   protected var hash: Int = 0
@@ -462,6 +470,7 @@ class ACGTNSeqBuilder(private var capacity:Long)
       val copy = LArray.of[Long](newSize)
       copy.clear
       LArray.copy(seq, 0, copy, 0, seq.length)
+      seq.clear()
       copy
     }
   }

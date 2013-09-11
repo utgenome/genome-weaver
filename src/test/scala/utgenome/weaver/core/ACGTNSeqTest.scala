@@ -124,6 +124,7 @@ class ACGTNSeqTest extends GenomeWeaverSpec {
       val w = ACGTNSeq(s)
 
       val tmpFile = File.createTempFile("acgt", ".dat", new File("target"))
+      tmpFile.deleteOnExit()
       try {
         debug(s"save to $tmpFile")
         w.saveTo(tmpFile)
