@@ -9,6 +9,11 @@ package utgenome.weaver.core
 
 import java.util
 import util.Arrays
+import java.io._
+import xerial.core.io.IOUtil
+import org.xerial.snappy.{SnappyInputStream, SnappyOutputStream, Snappy}
+import xerial.larray.{MMapMode, LArray}
+import scala.Some
 
 
 /**
@@ -64,7 +69,7 @@ trait DNA3bit {
 }
 
 
-object ACGTNSeq {
+object ACGTNSeq extends DNA3bit {
 
   def newBuilder = new ACGTNSeqBuilder
   def newBuilder(numBases:Long) = new ACGTNSeqBuilder(numBases)
@@ -83,6 +88,16 @@ object ACGTNSeq {
     }
   }
 
+  def loadFrom(file:String) : ACGTNSeq = {
+    val f = new DataInputStream(new FileInputStream(file))
+    IOUtil.withResource(f) { in =>
+      val numBases = in.readLong()
+      val seq = Array.ofDim[Long](minArraySize(numBases))
+      val sin = new SnappyInputStream(in)
+      sin.read(seq)
+      new ACGTNSeq(seq, numBases)
+    }
+  }
 
 }
 
@@ -100,6 +115,16 @@ class ACGTNSeq(private val seq: Array[Long], val numBases: Long)
   extends DNASeq
   with DNASeqOps[ACGTNSeq]
   with DNA3bit {
+
+  def saveTo(file:String) = {
+    val f = new DataOutputStream(new FileOutputStream(file))
+    IOUtil.withResource(f) { out =>
+      out.writeLong(numBases)
+      val sout = new SnappyOutputStream(out)
+      sout.write(seq, 0, minArraySize(numBases))
+      sout.flush()
+    }
+  }
 
 
   protected var hash: Int = 0
