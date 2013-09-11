@@ -10,9 +10,7 @@ package utgenome.weaver.core
 import xerial.lens.cui._
 import xerial.core.log.{Logger, LoggerFactory, LogLevel}
 import xerial.core.util.StopWatch
-import java.io.{BufferedInputStream, FileInputStream, File}
-import java.util.Properties
-import xerial.core.io.IOUtil
+import java.io.File
 import scala.io.Source
 
 /**
