@@ -22,7 +22,7 @@ import xerial.sbt.Pack._
 
 object GenomeWeaverBuild extends Build {
 
-  val SCALA_VERSION = "2.10.0"
+  val SCALA_VERSION = "2.10.2"
 
   def releaseResolver(v:String) : Resolver = {
     val profile = System.getProperty("profile", "default")
@@ -83,15 +83,15 @@ object GenomeWeaverBuild extends Build {
 
   object Dependencies {
     val scalaLib = Seq(
-      "org.scala-lang" % "scala-reflect" % "2.10.0"
+      "org.scala-lang" % "scala-reflect" % SCALA_VERSION
     )
     val testLib = Seq(
       "org.scalatest" %% "scalatest" % "2.0.M5b" % "test"
     )
     val xerialLib = Seq(
-      "org.xerial" % "xerial-core" % "3.1",
-      "org.xerial" % "xerial-lens" % "3.1",
-      "org.xerial" % "larray" % "0.1-M1"
+      "org.xerial" % "xerial-core" % "3.2.1",
+      "org.xerial" % "xerial-lens" % "3.2.1",
+      "org.xerial" % "larray" % "0.1.1"
     )
     val apacheCommons = Seq("org.apache.commons" % "commons-compress" % "1.4.1")
     val coreLib = Seq("org.xerial" % "jnuma" % "0.1.3")
