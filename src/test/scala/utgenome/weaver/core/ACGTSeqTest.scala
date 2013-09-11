@@ -124,7 +124,7 @@ class ACGTSeqTest extends GenomeWeaverSpec {
       val seq = randomSeq(1000000)
       val b = ACGTSeq.newBuilder
       for (slice <- seq.sliding(100, 100)) {
-        b += slice
+        b ++= slice
       }
       val s = b.result
       compare(seq, s)

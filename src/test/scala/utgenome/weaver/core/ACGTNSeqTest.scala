@@ -76,7 +76,7 @@ class ACGTNSeqTest extends GenomeWeaverSpec {
         val s = randomSeq(len)
         val w = ACGTNSeq(s)
         for (x <- 0 until s.length; y <- x until s.length) {
-          w.slice(x, y).toACGTString should be(s.substring(x, y))
+          w.slice(x, y).toACGTString shouldBe s.substring(x, y)
         }
       }
 
@@ -125,7 +125,7 @@ class ACGTNSeqTest extends GenomeWeaverSpec {
       val seq = randomSeq(1000000)
       val b = ACGTNSeq.newBuilder
       for (slice <- seq.sliding(100, 100)) {
-        b += slice
+        b ++= slice
       }
       val s = b.result
       val cmp = seq == s.toACGTString

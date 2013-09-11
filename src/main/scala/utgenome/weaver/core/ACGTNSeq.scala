@@ -12,7 +12,7 @@ import util.Arrays
 import java.io._
 import xerial.core.io.IOUtil
 import org.xerial.snappy.{SnappyInputStream, SnappyOutputStream, Snappy}
-import xerial.larray.{MMapMode, LArray}
+import xerial.larray.{LArrayInputStream, MappedLByteArray, MMapMode, LArray}
 import scala.Some
 
 
@@ -43,7 +43,7 @@ trait DNA3bit {
 
   protected def numFilledBlocks(numBases: Long) = (numBases / 64L * 3L).toInt
 
-  protected def lookupBase(seq:Array[Long], index:Long) : DNA = {
+  protected def lookupBase(seq:LArray[Long], index:Long) : DNA = {
     val pos: Int = blockIndex(index)
     val offset: Int = blockOffset(index)
     val shift = 62 - ((index & 0x1FL) << 1).toInt
@@ -53,7 +53,7 @@ trait DNA3bit {
     if (nFlag == 0) DNA(code) else DNA.N
   }
 
-  protected def updateBase(seq:Array[Long], index:Long, base:DNA)  {
+  protected def updateBase(seq:LArray[Long], index:Long, base:DNA)  {
     val pos = blockIndex(index)
     val offset = blockOffset(index)
     val shift = (offset & 0x1F) << 1
@@ -89,16 +89,21 @@ object ACGTNSeq extends DNA3bit {
   }
 
   def loadFrom(file:String) : ACGTNSeq = {
-    val f = new DataInputStream(new FileInputStream(file))
-    IOUtil.withResource(f) { in =>
-      val numBases = in.readLong()
-      val seq = Array.ofDim[Long](minArraySize(numBases))
-      val sin = new SnappyInputStream(in)
-      sin.read(seq)
-      new ACGTNSeq(seq, numBases)
+    val f = new File(file)
+    IOUtil.withResource(LArray.mmap(f, 0, f.length, MMapMode.READ_ONLY)) { mmap =>
+      loadFrom(mmap, 0)
     }
   }
 
+  def loadFrom(src:LArray[Byte], offset:Long) = {
+    var cursor = offset
+    val numBases = src.getLong(cursor)
+    cursor += 8
+
+    val seq = LArray.of[Long](numBases)
+    Snappy.rawUncompress(src.address + cursor, src.length - cursor, seq.address)
+    new ACGTNSeq(seq, numBases)
+  }
 }
 
 /**
@@ -111,21 +116,23 @@ object ACGTNSeq extends DNA3bit {
  *
  * @author leo
  */
-class ACGTNSeq(private val seq: Array[Long], val numBases: Long)
+class ACGTNSeq(private val seq: LArray[Long], val numBases: Long)
   extends DNASeq
   with DNASeqOps[ACGTNSeq]
   with DNA3bit {
 
-  def saveTo(file:String) = {
-    val f = new DataOutputStream(new FileOutputStream(file))
-    IOUtil.withResource(f) { out =>
-      out.writeLong(numBases)
-      val sout = new SnappyOutputStream(out)
-      sout.write(seq, 0, minArraySize(numBases))
-      sout.flush()
-    }
+  def saveTo(file:String)  {
+    val mmap = LArray.mmap(new File(file), 0, 0, MMapMode.READ_WRITE)
+    IOUtil.withResource(mmap){ m => saveTo(m, 0) }
   }
 
+  def saveTo(dest:LArray[Byte], offset:Long) {
+    var cursor = offset
+    dest.putLong(offset, numBases)
+    cursor += 8
+    val arrSize = minArraySize(numBases)
+    Snappy.rawCompress(seq.address, arrSize * 8, dest.address + cursor)
+  }
 
   protected var hash: Int = 0
 
@@ -186,7 +193,8 @@ class ACGTNSeq(private val seq: Array[Long], val numBases: Long)
       sys.error("invalid range [%d, %d)".format(start, end))
 
     val len = end - start
-    val dest = new Array[Long](minArraySize(len))
+    val dest = LArray.of[Long](minArraySize(len))
+    dest.clear()
 
     var i = 0L
     while (i < len) {
@@ -369,8 +377,8 @@ class ACGTNSeq(private val seq: Array[Long], val numBases: Long)
     v
   }
 
-  private def complement(c: Array[Long]) : Array[Long] = {
-    val numBlocks = seq.length / 3
+  private def complement(c: LArray[Long]) : LArray[Long] = {
+    val numBlocks = (seq.length / 3).toInt
     for (i <- 0 until numBlocks) {
       c(i * 3) = c(i * 3)
       c(i * 3 + 1) = ~(c(i * 3 + 1))
@@ -394,7 +402,7 @@ class ACGTNSeq(private val seq: Array[Long], val numBases: Long)
 
 
   def complement : ACGTNSeq = {
-    val c = new Array[Long](seq.length)
+    val c = LArray.of[Long](seq.length)
     new ACGTNSeq(complement(c), this.numBases)
   }
 
@@ -413,7 +421,7 @@ class ACGTNSeqBuilder(private var capacity:Long)
 
   def this() = this(10L)
 
-  private var seq = new Array[Long](minArraySize(capacity))
+  private var seq = LArray.of[Long](minArraySize(capacity))
   private var _numBases = 0L
 
   def numBases = _numBases
@@ -426,7 +434,9 @@ class ACGTNSeqBuilder(private var capacity:Long)
       val requiredArraySize = minArraySize(newSize)
       if (requiredArraySize >= seq.length) {
         val newArraySize = minArraySize((newSize * 1.5 + 64L).toLong)
-        val newArray = util.Arrays.copyOf(seq, newArraySize)
+        val newArray = LArray.of[Long](newArraySize)
+        newArray.clear
+        LArray.copy(seq, 0, newArray, 0, seq.length)
         capacity = newArraySize / 3L * 64L
         seq = newArray
       }
@@ -443,8 +453,13 @@ class ACGTNSeqBuilder(private var capacity:Long)
   }
 
   lazy val rawArray = {
-    val size = minArraySize(_numBases)
-    if (seq.length == size) seq else Arrays.copyOf(seq, size)
+    val newSize = minArraySize(_numBases)
+    if (seq.length == newSize) seq else {
+      val copy = LArray.of[Long](newSize)
+      copy.clear
+      LArray.copy(seq, 0, copy, 0, seq.length)
+      copy
+    }
   }
 
   def result = new ACGTNSeq(rawArray, _numBases)
@@ -457,7 +472,7 @@ class ACGTNSeqBuilder(private var capacity:Long)
  * @param seq
  * @param numBases
  */
-class ACGTNSeqBuffer(private val seq: Array[Long], override val numBases: Long)
+class ACGTNSeqBuffer(private val seq: LArray[Long], override val numBases: Long)
   extends ACGTNSeq(seq, numBases) {
 
   def update(index: Long, base: DNA) {

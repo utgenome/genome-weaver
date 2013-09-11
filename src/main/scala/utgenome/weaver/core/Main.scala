@@ -68,6 +68,15 @@ class Main(@option(prefix="-h,--help", description="display help", isHelp=true)
     info(s"import $fileName")
     val s = new StopWatch
 
+    if(fileName.endsWith(".fa")) {
+      info(s"import FASTA format")
+      val index = FASTA.create3bitIndexFrom(fileName)
+
+
+
+    }
+
+
 
     info(s"done. ${s.reportElapsedTime}")
   }

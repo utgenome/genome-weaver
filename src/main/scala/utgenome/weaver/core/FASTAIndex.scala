@@ -7,6 +7,14 @@
 
 package utgenome.weaver.core
 
+import org.xerial.snappy.{SnappyInputStream, Snappy, SnappyOutputStream}
+import java.io._
+import xerial.core.log.Logger
+import scala.util.{Failure, Success, Try}
+import xerial.core.io.IOUtil
+import xerial.larray.{MMapMode, LArray}
+import scala.io.Source
+
 /**
  * Indexes of FASTA data
  *
@@ -30,8 +38,16 @@ trait FASTAIndex {
   def sequenceNames: Iterable[String]
 }
 
+object FASTAEntryIndex extends Logger {
+  def parse(line:String) : Try[FASTAEntryIndex] = {
+    val c = line.split("""\t""")
+    Try(FASTAEntryIndex(c(0), c(3), c(1).toLong, c(2).toInt))
+  }
+}
 
-class FASTAEntryIndex(val name: String, val description: String, val offset: Long, val length: Int)
+case class FASTAEntryIndex(name: String, description: String, offset: Long, length: Int) {
+  def toTSV = s"${name}\t${offset}\t${length}\t$description"
+}
 
 trait FASTAIndexLike[Repr <: DNASeq with DNASeqOps[Repr]] {
 
@@ -70,9 +86,57 @@ class FASTAIndex2bit(protected val seq: ACGTSeq, protected val entry: Seq[FASTAE
 
 }
 
+object FASTAIndex3bit extends Logger {
+  def loadFrom(file:String) : FASTAIndex3bit = {
+
+    val f = new File(file)
+    var cursor = 0L
+    val mmap = LArray.mmap(f, 0, f.length(), MMapMode.READ_ONLY)
+
+    // Read FASTAEntryIndex
+    val compressedDataSize = mmap.getInt(0)
+    cursor += 4
+
+    val uncompressedSize = Snappy.uncompressedLength(mmap.address + cursor, compressedDataSize)
+    val buf = LArray.of[Byte](uncompressedSize)
+    Snappy.rawUncompress(mmap.address + cursor, compressedDataSize, buf.address)
+    cursor += compressedDataSize
+
+    val indexes = Source.fromString(new String(buf.toArray)).getLines
+      .map(FASTAEntryIndex.parse)
+      .collect {
+        case Success(entry) => entry
+        case Failure(err) => warn(err)
+      }
+
+
+    null
+  }
+
+}
+
+
 class FASTAIndex3bit(protected val seq: ACGTNSeq, protected val entry: Seq[FASTAEntryIndex])
   extends FASTAIndex
   with FASTAIndexLike[ACGTNSeq] {
+
+  def saveTo(file:String) {
+    val f = new File(file)
+    IOUtil.withResource(LArray.mmap(f, 0, 0, MMapMode.READ_WRITE)) { out =>
+      val b = new StringBuilder
+      for(e <- entry) yield {
+        b.append(e.toTSV)
+        b.append("\n")
+      }
+      val compressedIndex = Snappy.compress(b.result)
+      var cursor = 0
+      out.putInt(out.address + cursor, compressedIndex.size)
+      cursor += 4
+      out.readFromArray(compressedIndex, 0, cursor, compressedIndex.size)
+      cursor += compressedIndex.size
+      seq.saveTo(out, cursor)
+    }
+  }
 
 }
 
