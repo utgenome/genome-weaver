@@ -8,6 +8,7 @@
 package utgenome.weaver.core
 
 import util.Random
+import java.io.File
 
 
 /**
@@ -117,6 +118,25 @@ class ACGTNSeqTest extends GenomeWeaverSpec {
       check(24)
       check(150)
     }
+
+    "save to or load from a file" taggedAs("io") in {
+      val s = randomSeq(150)
+      val w = ACGTNSeq(s)
+
+      val tmpFile = File.createTempFile("acgt", ".dat", new File("target"))
+      try {
+        debug(s"save to $tmpFile")
+        w.saveTo(tmpFile)
+        debug(s"load from $tmpFile")
+        val w2 = ACGTNSeq.loadFrom(tmpFile)
+        w.toACGTString shouldBe w2.toACGTString
+      }
+      finally {
+        tmpFile.delete()
+      }
+
+    }
+
 
   }
 

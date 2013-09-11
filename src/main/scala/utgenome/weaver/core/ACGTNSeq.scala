@@ -88,9 +88,10 @@ object ACGTNSeq extends DNA3bit {
     }
   }
 
-  def loadFrom(file:String) : ACGTNSeq = {
-    val f = new File(file)
-    IOUtil.withResource(LArray.mmap(f, 0, f.length, MMapMode.READ_ONLY)) { mmap =>
+  def loadFrom(file:String) : ACGTNSeq = loadFrom(new File(file))
+
+  def loadFrom(file:File) : ACGTNSeq = {
+    IOUtil.withResource(LArray.mmap(file, 0, file.length, MMapMode.READ_ONLY)) { mmap =>
       loadFrom(mmap, 0)
     }
   }
@@ -121,8 +122,10 @@ class ACGTNSeq(private val seq: LArray[Long], val numBases: Long)
   with DNASeqOps[ACGTNSeq]
   with DNA3bit {
 
-  def saveTo(file:String)  {
-    val mmap = LArray.mmap(new File(file), 0, 0, MMapMode.READ_WRITE)
+  def saveTo(file:String)  { saveTo(new File(file)) }
+
+  def saveTo(file:File) {
+    val mmap = LArray.mmap(file, 0, 0, MMapMode.READ_WRITE)
     IOUtil.withResource(mmap){ m => saveTo(m, 0) }
   }
 
