@@ -7,7 +7,7 @@
 
 package utgenome.weaver.core
 
-import java.io.{BufferedInputStream, StringReader, PrintWriter}
+import java.io.{File, BufferedInputStream, StringReader, PrintWriter}
 import util.Random
 import org.scalatest.Tag
 import xerial.core.io.{TextDataProducer, Resource}
@@ -87,6 +87,34 @@ class FASTATest extends GenomeWeaverSpec {
       List("chr1", "chr2", "chr3").forall(chrSet.contains(_)) should be(true)
       index("chr1")
     }
+
+
+    "save to and load from a file" taggedAs ("io") in {
+      val index = tgzFasta {
+        in => FASTA.create3bitIndexFromTarGZ(in)
+      }
+
+      val f = File.createTempFile("fasta", ".dat", new File("target"))
+      f.deleteOnExit()
+      try {
+        index.saveTo(f)
+        val loaded = FASTAIndex3bit.loadFrom(f)
+
+        index.sequenceNames.toSet shouldBe loaded.sequenceNames.toSet
+
+        for(chr <- index.sequenceNames) {
+          val a = index(chr)
+          val b = loaded(chr)
+          a.toACGTString shouldBe b.toACGTString
+        }
+
+      }
+      finally {
+        f.delete()
+      }
+    }
+
+
 
 
   }

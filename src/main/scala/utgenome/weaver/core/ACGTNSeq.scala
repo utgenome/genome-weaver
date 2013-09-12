@@ -130,10 +130,12 @@ class ACGTNSeq(private val seq: LArray[Long], val numBases: Long)
     seq.free
   }
 
+  def byteLength : Long = 8L + seq.byteLength
+
   def saveTo(file:String)  { saveTo(new File(file)) }
 
   def saveTo(file:File) {
-    val mmap = LArray.mmap(file, 0, 8L + seq.byteLength, MMapMode.READ_WRITE)
+    val mmap = LArray.mmap(file, 0, byteLength, MMapMode.READ_WRITE)
     IOUtil.withResource(mmap){ m => saveTo(m, 0) }
   }
 
