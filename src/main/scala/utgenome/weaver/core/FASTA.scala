@@ -21,7 +21,7 @@ import xerial.core.io.text.LineReader
  *
  * <h3>Usage</h3>
  * <pre>
- * <code>
+git s * <code>
  * FASTA.read(randomFASTAReader) { stream =>
  *   // reader for each chromosome
  *   for(r : FASTAEntryReader <- stream) {
@@ -47,7 +47,7 @@ object FASTA extends Logger {
     for(r : FASTAEntryReader <- stream) {
       val desc = r.description
       val name = r.name
-      debug("loading %s", name)
+      debug(s"loading $name")
       for(line <- r.lines) {
         b ++= line
       }
@@ -64,7 +64,7 @@ object FASTA extends Logger {
     for(r : FASTAEntryReader <- stream) {
       val desc = r.description
       val name = r.name
-      debug("loading %s", name)
+      debug(s"loading $name")
       for(line <- r.lines) {
         b ++= line
       }
