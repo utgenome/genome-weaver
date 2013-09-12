@@ -63,7 +63,9 @@ class Main(@option(prefix="-h,--help", description="display help", isHelp=true)
 
   @command(description="import data")
   def `import`(@argument
-               fileName:String) = {
+               fileName:String,
+               @option(prefix="-o,--output", description="output file name")
+               outFile : Option[String] = None) = {
 
     info(s"import $fileName")
     val s = new StopWatch
@@ -71,15 +73,16 @@ class Main(@option(prefix="-h,--help", description="display help", isHelp=true)
     if(fileName.endsWith(".fa")) {
       info(s"import FASTA format")
       val index = FASTA.create3bitIndexFrom(fileName)
-
-
-
+      val outFileName = outFile getOrElse fileName + ".dat"
+      info(s"output file name: $outFileName")
+      index.saveTo(outFileName)
     }
-
 
 
     info(s"done. ${s.reportElapsedTime}")
   }
+
+  
 
 
 }
